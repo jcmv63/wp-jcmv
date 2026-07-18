@@ -1,0 +1,16 @@
+# Environnement
+.env
+
+# WordPress — on ne versionne que nos développements
+wp-content/*
+!wp-content/plugins
+wp-content/plugins/*
+!wp-content/plugins/jcmv-*
+!wp-content/themes
+wp-content/themes/*
+!wp-content/themes/jcmv-*
+
+# Divers
+.DS_Store
+node_modules/
+*.log
