@@ -1,0 +1,516 @@
+/**
+ * JCMV — composants de la charte graphique (v1.2)
+ * Ce fichier complète theme.json : il porte ce que theme.json ne sait pas
+ * exprimer (focus, ombres, composants récurrents). Chargé sur le front
+ * et dans l'éditeur.
+ *
+ * Tokens disponibles (générés par theme.json) :
+ *   couleurs   : --wp--preset--color--{base|contrast|accent-1..6|gris-texte|...}
+ *   alias      : --wp--custom--color--{rouge|anthracite|gris-fond|...}
+ *   rayons     : --wp--custom--radius--{small|medium|round}
+ *   ombre      : --wp--preset--shadow--card
+ */
+
+/* ---------- Footer collé en bas de page ---------- */
+
+.wp-site-blocks {
+	display: flex;
+	flex-direction: column;
+	min-height: calc(100vh - var(--wp-admin--admin-bar--height, 0px));
+}
+
+.wp-site-blocks > main {
+	flex-grow: 1;
+}
+
+/* Pas de marge auto au-dessus du footer : c'est au contenu de gérer
+   son espacement bas (padding des templates, ou bloc Espacement). */
+.wp-site-blocks > footer.wp-block-template-part {
+	margin-block-start: 0;
+}
+
+/* ---------- Accessibilité : focus visible (RGAA) ---------- */
+
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+	outline: 2px solid var(--wp--preset--color--accent-1);
+	outline-offset: 2px;
+	border-radius: var(--wp--custom--radius--small);
+}
+
+/* Lien d'évitement */
+.skip-link:focus {
+	position: absolute;
+	z-index: 100;
+	top: 8px;
+	left: 8px;
+	padding: 12px 20px;
+	background: var(--wp--preset--color--contrast);
+	color: var(--wp--preset--color--base);
+}
+
+/* ---------- Mouvement réduit ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+	}
+}
+
+/* ---------- Header (charte §05 — navigation) ---------- */
+
+.jcmv-header__logo {
+	display: block;
+	line-height: 0;
+}
+
+.jcmv-header__logo img {
+	width: 48px;
+	height: auto;
+}
+
+/* Liens de nav : gris clair au repos, blanc au survol/actif */
+.jcmv-header .wp-block-navigation__container .wp-block-navigation-item a {
+	color: #c4c8d2;
+	text-decoration: none;
+	transition: color 0.15s;
+}
+
+.jcmv-header .wp-block-navigation__container .wp-block-navigation-item a:hover,
+.jcmv-header .wp-block-navigation__container .wp-block-navigation-item a:focus-visible {
+	color: var(--wp--preset--color--base);
+}
+
+/* Onglet actif : blanc + soulignement rouge */
+.jcmv-header .wp-block-navigation__container .current-menu-item > a,
+.jcmv-header .wp-block-navigation__container [aria-current="page"] {
+	color: var(--wp--preset--color--base);
+	border-bottom: 2px solid var(--wp--preset--color--accent-1);
+	padding-bottom: 4px;
+}
+
+/* Burger mobile en blanc */
+.jcmv-header .wp-block-navigation__responsive-container-open,
+.jcmv-header .wp-block-navigation__responsive-container-close {
+	color: var(--wp--preset--color--base);
+}
+
+/* Menu déroulant mobile : items séparés, actif en rouge (charte, nav mobile) */
+.jcmv-header .wp-block-navigation__responsive-container.is-menu-open .wp-block-navigation-item a {
+	padding: 13px 0;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.jcmv-header .wp-block-navigation__responsive-container.is-menu-open .current-menu-item > a,
+.jcmv-header .wp-block-navigation__responsive-container.is-menu-open [aria-current="page"] {
+	color: var(--wp--preset--color--accent-1);
+	border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+/* ---------- Header variante blanche (charte §05) ---------- */
+
+.jcmv-header--light {
+	border-bottom: 1px solid var(--wp--preset--color--accent-6);
+}
+
+.jcmv-header--light .wp-block-navigation__container .wp-block-navigation-item a {
+	color: var(--wp--preset--color--anthracite-clair);
+}
+
+.jcmv-header--light .wp-block-navigation__container .wp-block-navigation-item a:hover,
+.jcmv-header--light .wp-block-navigation__container .wp-block-navigation-item a:focus-visible {
+	color: var(--wp--preset--color--accent-2);
+}
+
+.jcmv-header--light .wp-block-navigation__container .current-menu-item > a,
+.jcmv-header--light .wp-block-navigation__container [aria-current="page"] {
+	color: var(--wp--preset--color--contrast);
+	border-bottom: 2px solid var(--wp--preset--color--accent-1);
+}
+
+.jcmv-header--light .wp-block-navigation__responsive-container-open,
+.jcmv-header--light .wp-block-navigation__responsive-container-close {
+	color: var(--wp--preset--color--contrast);
+}
+
+.jcmv-header--light .wp-block-navigation__responsive-container.is-menu-open .wp-block-navigation-item a {
+	border-bottom-color: var(--wp--preset--color--accent-6);
+}
+
+.jcmv-header--light .wp-block-navigation__responsive-container.is-menu-open .current-menu-item > a,
+.jcmv-header--light .wp-block-navigation__responsive-container.is-menu-open [aria-current="page"] {
+	color: var(--wp--preset--color--accent-1);
+}
+
+/* ---------- Footer (charte : fond anthracite foncé) ---------- */
+
+.jcmv-footer {
+	text-align: center;
+}
+
+.jcmv-footer__logo {
+	display: inline-block;
+	line-height: 0;
+	opacity: 0.92;
+}
+
+.jcmv-footer__logo img {
+	width: 84px;
+	height: auto;
+}
+
+.jcmv-footer__title {
+	font-family: var(--wp--preset--font-family--display);
+	font-size: 12px;
+	letter-spacing: 0.18em;
+	text-transform: uppercase;
+}
+
+.jcmv-footer__links a {
+	color: #c4c8d2;
+	font-weight: 400;
+	text-decoration: none;
+}
+
+.jcmv-footer__links a:hover,
+.jcmv-footer__links a:focus-visible {
+	color: var(--wp--preset--color--base);
+	text-decoration: underline;
+}
+
+.jcmv-footer__copyright {
+	color: #9298a6;
+}
+
+/* ---------- Carte (ombre + rayon M de la charte) ---------- */
+
+.jcmv-card {
+	border: 1px solid var(--wp--preset--color--accent-6);
+	border-radius: var(--wp--custom--radius--medium);
+	box-shadow: var(--wp--preset--shadow--card);
+	overflow: hidden;
+}
+
+/* ---------- Patterns éditoriaux ---------- */
+
+/* Surtitre (kicker) — Oswald, fort interlettrage, rouge */
+.jcmv-kicker {
+	font-family: var(--wp--preset--font-family--display);
+	font-size: 13px;
+	font-weight: 500;
+	letter-spacing: 0.32em;
+	text-transform: uppercase;
+	color: var(--wp--preset--color--accent-1);
+}
+
+/* Texte atténué sur fond sombre */
+.jcmv-on-dark-muted {
+	color: #c4c8d2;
+}
+
+/* Chiffres clés */
+.jcmv-stat {
+	text-align: center;
+	padding: var(--wp--preset--spacing--50) var(--wp--preset--spacing--30);
+	border: 1px solid var(--wp--preset--color--accent-6);
+	border-radius: var(--wp--custom--radius--medium);
+	background: var(--wp--preset--color--base);
+}
+
+.jcmv-stat__num {
+	font-family: var(--wp--preset--font-family--display);
+	font-size: 34px;
+	font-weight: 700;
+	line-height: 1.1;
+	color: var(--wp--preset--color--accent-1);
+}
+
+.jcmv-stat__label {
+	font-family: var(--wp--preset--font-family--display);
+	font-size: 12px;
+	font-weight: 400;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+	color: var(--wp--preset--color--gris-texte);
+	margin-top: 4px;
+}
+
+/* Témoignage */
+.jcmv-quote {
+	border-left: 5px solid var(--wp--preset--color--accent-1);
+	border-radius: var(--wp--custom--radius--medium);
+}
+
+.jcmv-quote__text {
+	font-style: italic;
+}
+
+.jcmv-quote__text::before {
+	content: "”";
+	display: block;
+	font-family: var(--wp--preset--font-family--display);
+	font-style: normal;
+	font-size: 44px;
+	line-height: 0.5;
+	margin-bottom: 10px;
+	color: var(--wp--preset--color--accent-1);
+}
+
+.jcmv-quote__author {
+	font-family: var(--wp--preset--font-family--display);
+	font-size: 12.5px;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: var(--wp--preset--color--gris-texte);
+}
+
+/* Accordéon FAQ (bloc Details) */
+.jcmv-accordion {
+	border: 1px solid var(--wp--preset--color--accent-6);
+	border-radius: var(--wp--custom--radius--medium);
+	overflow: hidden;
+	background: var(--wp--preset--color--base);
+}
+
+.jcmv-accordion .wp-block-details {
+	margin: 0;
+	border-bottom: 1px solid var(--wp--preset--color--accent-6);
+}
+
+.jcmv-accordion .wp-block-details:last-child {
+	border-bottom: none;
+}
+
+.jcmv-accordion summary {
+	list-style: none;
+	cursor: pointer;
+	padding: 18px 20px;
+	font-family: var(--wp--preset--font-family--display);
+	font-size: 14.5px;
+	font-weight: 600;
+	letter-spacing: 0.03em;
+	text-transform: uppercase;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 12px;
+}
+
+.jcmv-accordion summary::-webkit-details-marker {
+	display: none;
+}
+
+.jcmv-accordion summary::after {
+	content: "+";
+	font-size: 20px;
+	font-weight: 400;
+	color: var(--wp--preset--color--accent-1);
+}
+
+.jcmv-accordion .wp-block-details[open] summary::after {
+	content: "–";
+}
+
+.jcmv-accordion .wp-block-details > :not(summary) {
+	padding: 0 20px 20px;
+	margin: 0;
+	color: var(--wp--preset--color--gris-texte);
+}
+
+/* Carte dojo */
+.jcmv-location__eyebrow {
+	font-family: var(--wp--preset--font-family--display);
+	font-size: 11.5px;
+	font-weight: 500;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	color: var(--wp--preset--color--accent-1);
+}
+
+/* ---------- Cartes d'actualité (template home) ---------- */
+
+.jcmv-card--post {
+	background: var(--wp--preset--color--base);
+}
+
+.jcmv-card--post .wp-block-post-featured-image img {
+	display: block;
+	width: 100%;
+	height: auto;
+}
+
+.jcmv-card--post .wp-block-post-title a {
+	color: inherit;
+	text-decoration: none;
+}
+
+.jcmv-card--post .wp-block-post-title a:hover,
+.jcmv-card--post .wp-block-post-title a:focus-visible {
+	color: var(--wp--preset--color--accent-2);
+}
+
+/* Cartes horizontales compactes (pattern dernières actualités) */
+.jcmv-card--mini .wp-block-post-featured-image {
+	width: 96px;
+	flex-shrink: 0;
+	align-self: stretch; /* l'image occupe toute la hauteur de la carte */
+}
+
+.jcmv-card--mini .wp-block-post-featured-image a,
+.jcmv-card--mini .wp-block-post-featured-image img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover; /* collée aux bords : les coins sont rognés par la carte */
+}
+
+.jcmv-card--mini .wp-block-post-title {
+	line-height: 1.3;
+}
+
+/* Pagination (charte §05) */
+.jcmv-pagination .wp-block-query-pagination-numbers .page-numbers {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 38px;
+	height: 38px;
+	padding: 0 6px;
+	border: 1px solid var(--wp--preset--color--accent-6);
+	border-radius: 8px;
+	font-family: var(--wp--preset--font-family--display);
+	font-size: 13.5px;
+	text-decoration: none;
+	color: var(--wp--preset--color--anthracite-clair);
+}
+
+.jcmv-pagination .wp-block-query-pagination-numbers a.page-numbers:hover {
+	border-color: var(--wp--preset--color--accent-1);
+	color: var(--wp--preset--color--accent-2);
+}
+
+.jcmv-pagination .wp-block-query-pagination-numbers .page-numbers.current {
+	background: var(--wp--preset--color--accent-1);
+	border-color: var(--wp--preset--color--accent-1);
+	color: var(--wp--preset--color--base);
+}
+
+.jcmv-pagination .wp-block-query-pagination-previous,
+.jcmv-pagination .wp-block-query-pagination-next {
+	font-family: var(--wp--preset--font-family--display);
+	font-size: 13.5px;
+	text-decoration: none;
+	color: var(--wp--preset--color--anthracite-clair);
+}
+
+/* ---------- Bouton outline : survol (complète la variation theme.json) ---------- */
+
+.wp-block-button.is-style-outline > .wp-block-button__link:hover,
+.wp-block-button.is-style-outline > .wp-block-button__link:focus-visible {
+	background: var(--wp--preset--color--accent-1);
+	border-color: var(--wp--preset--color--accent-1);
+	color: var(--wp--preset--color--base);
+}
+
+/* ---------- Tableaux (résultats de compétition, charte §05) ---------- */
+
+.wp-block-table table {
+	border-collapse: collapse;
+	border: 1px solid var(--wp--preset--color--accent-6);
+}
+
+.wp-block-table thead {
+	border-bottom: none;
+}
+
+.wp-block-table thead th {
+	background: var(--wp--preset--color--accent-4);
+	color: var(--wp--preset--color--base);
+	font-family: var(--wp--preset--font-family--display);
+	font-size: 12.5px;
+	font-weight: 600;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	text-align: left;
+	padding: 12px 16px;
+	border: none;
+}
+
+.wp-block-table td {
+	padding: 12px 16px;
+	font-size: 14px;
+	border: none;
+	border-bottom: 1px solid var(--wp--preset--color--accent-6);
+}
+
+.wp-block-table tbody tr:nth-child(even) {
+	background: var(--wp--preset--color--accent-5);
+}
+
+.wp-block-table tbody tr:hover {
+	background: var(--wp--preset--color--accent-3);
+}
+
+/* ---------- Alertes (messages système, charte §05) ---------- */
+
+.is-style-jcmv-alerte-succes,
+.is-style-jcmv-alerte-erreur,
+.is-style-jcmv-alerte-info,
+.is-style-jcmv-alerte-attention {
+	padding: 16px 18px;
+	border-radius: 10px;
+	border: 1px solid transparent;
+	font-size: 14px;
+}
+
+.is-style-jcmv-alerte-succes {
+	background: #eaf7ef;
+	border-color: #bfe6cd;
+	color: #1d6e3f;
+}
+
+.is-style-jcmv-alerte-erreur {
+	background: var(--wp--preset--color--accent-3);
+	border-color: #f6c9c9;
+	color: var(--wp--preset--color--accent-2);
+}
+
+.is-style-jcmv-alerte-info {
+	background: #e9f1fc;
+	border-color: #c6daf4;
+	color: #2a5d9c;
+}
+
+.is-style-jcmv-alerte-attention {
+	background: #fff6e9;
+	border-color: #f3d9a6;
+	color: #9a6a0c;
+}
+
+/* ---------- Badges ---------- */
+
+.jcmv-badge {
+	display: inline-block;
+	padding: 4px 12px;
+	border-radius: var(--wp--custom--radius--round);
+	font-family: var(--wp--preset--font-family--display);
+	font-size: 11.5px;
+	font-weight: 600;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+	background: var(--wp--preset--color--accent-1);
+	color: var(--wp--preset--color--base);
+}
+
+.jcmv-badge--anthracite {
+	background: var(--wp--preset--color--contrast);
+}
+
+.jcmv-badge--pale {
+	background: var(--wp--preset--color--accent-3);
+	color: var(--wp--preset--color--accent-2);
+}

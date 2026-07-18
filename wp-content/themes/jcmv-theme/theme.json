@@ -1,0 +1,270 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/theme.json",
+  "version": 3,
+  "settings": {
+    "appearanceTools": true,
+    "useRootPaddingAwareAlignments": true,
+    "layout": {
+      "contentSize": "1080px",
+      "wideSize": "1280px"
+    },
+    "color": {
+      "palette": [
+        { "slug": "base", "name": "Blanc", "color": "#FFFFFF" },
+        { "slug": "contrast", "name": "Anthracite", "color": "#323642" },
+        { "slug": "accent-1", "name": "Rouge JCMV", "color": "#EE3435" },
+        { "slug": "accent-2", "name": "Rouge foncé", "color": "#C8282A" },
+        { "slug": "accent-3", "name": "Rouge pâle", "color": "#FCE9E9" },
+        { "slug": "accent-4", "name": "Anthracite foncé", "color": "#1F222B" },
+        { "slug": "accent-5", "name": "Gris fond", "color": "#F5F6F8" },
+        { "slug": "accent-6", "name": "Gris bordure", "color": "#E3E5EA" },
+        { "slug": "anthracite-clair", "name": "Anthracite clair", "color": "#4B5160" },
+        { "slug": "gris-texte", "name": "Gris texte", "color": "#6B7280" },
+        { "slug": "succes", "name": "Succès", "color": "#2E9E5B" },
+        { "slug": "attention", "name": "Attention", "color": "#E0982B" },
+        { "slug": "info", "name": "Information", "color": "#3B7DD8" }
+      ],
+      "duotone": [],
+      "custom": true,
+      "customDuotone": false,
+      "customGradient": false,
+      "defaultPalette": false,
+      "defaultGradients": false,
+      "defaultDuotone": false
+    },
+    "typography": {
+      "fontFamilies": [
+        {
+          "slug": "display",
+          "name": "Oswald (titres)",
+          "fontFamily": "'Oswald', sans-serif",
+          "fontFace": [
+            {
+              "fontFamily": "Oswald",
+              "fontWeight": "400",
+              "fontStyle": "normal",
+              "fontDisplay": "swap",
+              "src": [ "file:./assets/fonts/oswald-400.woff2" ]
+            },
+            {
+              "fontFamily": "Oswald",
+              "fontWeight": "500",
+              "fontStyle": "normal",
+              "fontDisplay": "swap",
+              "src": [ "file:./assets/fonts/oswald-500.woff2" ]
+            },
+            {
+              "fontFamily": "Oswald",
+              "fontWeight": "600",
+              "fontStyle": "normal",
+              "fontDisplay": "swap",
+              "src": [ "file:./assets/fonts/oswald-600.woff2" ]
+            },
+            {
+              "fontFamily": "Oswald",
+              "fontWeight": "700",
+              "fontStyle": "normal",
+              "fontDisplay": "swap",
+              "src": [ "file:./assets/fonts/oswald-700.woff2" ]
+            }
+          ]
+        },
+        {
+          "slug": "corps",
+          "name": "Archivo (texte)",
+          "fontFamily": "'Archivo', sans-serif",
+          "fontFace": [
+            {
+              "fontFamily": "Archivo",
+              "fontWeight": "400",
+              "fontStyle": "normal",
+              "fontDisplay": "swap",
+              "src": [ "file:./assets/fonts/archivo-400.woff2" ]
+            },
+            {
+              "fontFamily": "Archivo",
+              "fontWeight": "500",
+              "fontStyle": "normal",
+              "fontDisplay": "swap",
+              "src": [ "file:./assets/fonts/archivo-500.woff2" ]
+            },
+            {
+              "fontFamily": "Archivo",
+              "fontWeight": "600",
+              "fontStyle": "normal",
+              "fontDisplay": "swap",
+              "src": [ "file:./assets/fonts/archivo-600.woff2" ]
+            },
+            {
+              "fontFamily": "Archivo",
+              "fontWeight": "700",
+              "fontStyle": "normal",
+              "fontDisplay": "swap",
+              "src": [ "file:./assets/fonts/archivo-700.woff2" ]
+            }
+          ]
+        }
+      ],
+      "fontSizes": [
+        { "slug": "small", "name": "Légende", "size": "13px" },
+        { "slug": "medium", "name": "Corps", "size": "16px" },
+        { "slug": "large", "name": "Chapô", "size": "18px" },
+        { "slug": "x-large", "name": "H3", "size": "22px" },
+        { "slug": "xx-large", "name": "H2", "size": "34px" },
+        { "slug": "huge", "name": "H1", "size": "clamp(2.5rem, 6vw, 3.25rem)" }
+      ],
+      "defaultFontSizes": false,
+      "customFontSize": false,
+      "fluid": false,
+      "lineHeight": true
+    },
+    "spacing": {
+      "spacingSizes": [
+        { "slug": "20", "name": "4", "size": "4px" },
+        { "slug": "30", "name": "8", "size": "8px" },
+        { "slug": "40", "name": "16", "size": "16px" },
+        { "slug": "50", "name": "24", "size": "24px" },
+        { "slug": "60", "name": "32", "size": "32px" },
+        { "slug": "70", "name": "48", "size": "48px" },
+        { "slug": "80", "name": "64", "size": "64px" }
+      ],
+      "defaultSpacingSizes": false,
+      "units": [ "px", "%", "vh", "vw", "rem" ],
+      "padding": true,
+      "margin": true,
+      "blockGap": true
+    },
+    "shadow": {
+      "defaultPresets": false,
+      "presets": [
+        {
+          "slug": "card",
+          "name": "Carte",
+          "shadow": "0 14px 40px -18px rgba(31,34,43,.35)"
+        }
+      ]
+    },
+    "border": {
+      "radius": true,
+      "color": true,
+      "width": true
+    },
+    "custom": {
+      "radius": {
+        "small": "6px",
+        "medium": "14px",
+        "round": "999px"
+      },
+      "color": {
+        "rouge": "var(--wp--preset--color--accent-1)",
+        "rougeFonce": "var(--wp--preset--color--accent-2)",
+        "rougePale": "var(--wp--preset--color--accent-3)",
+        "anthracite": "var(--wp--preset--color--contrast)",
+        "anthraciteFonce": "var(--wp--preset--color--accent-4)",
+        "grisFond": "var(--wp--preset--color--accent-5)",
+        "grisBordure": "var(--wp--preset--color--accent-6)",
+        "blanc": "var(--wp--preset--color--base)"
+      }
+    }
+  },
+  "styles": {
+    "color": {
+      "background": "var(--wp--preset--color--base)",
+      "text": "var(--wp--preset--color--contrast)"
+    },
+    "typography": {
+      "fontFamily": "var(--wp--preset--font-family--corps)",
+      "fontSize": "var(--wp--preset--font-size--medium)",
+      "lineHeight": "1.65"
+    },
+    "elements": {
+      "link": {
+        "color": { "text": "var(--wp--preset--color--accent-2)" },
+        "typography": { "fontWeight": "600" },
+        ":hover": {
+          "color": { "text": "var(--wp--preset--color--accent-1)" }
+        }
+      },
+      "heading": {
+        "typography": {
+          "fontFamily": "var(--wp--preset--font-family--display)",
+          "textTransform": "uppercase"
+        }
+      },
+      "h1": {
+        "typography": {
+          "fontSize": "var(--wp--preset--font-size--huge)",
+          "fontWeight": "700",
+          "lineHeight": "0.98"
+        }
+      },
+      "h2": {
+        "typography": {
+          "fontSize": "var(--wp--preset--font-size--xx-large)",
+          "fontWeight": "600"
+        }
+      },
+      "h3": {
+        "typography": {
+          "fontSize": "var(--wp--preset--font-size--x-large)",
+          "fontWeight": "600",
+          "letterSpacing": "0.04em"
+        }
+      },
+      "button": {
+        "color": {
+          "background": "var(--wp--preset--color--accent-1)",
+          "text": "var(--wp--preset--color--base)"
+        },
+        "typography": {
+          "fontFamily": "var(--wp--preset--font-family--display)",
+          "fontWeight": "600",
+          "textTransform": "uppercase",
+          "letterSpacing": "0.06em",
+          "fontSize": "14px"
+        },
+        "border": { "radius": "8px" },
+        "spacing": {
+          "padding": {
+            "top": "13px",
+            "bottom": "13px",
+            "left": "26px",
+            "right": "26px"
+          }
+        },
+        ":hover": {
+          "color": {
+            "background": "var(--wp--preset--color--accent-2)",
+            "text": "var(--wp--preset--color--base)"
+          }
+        }
+      }
+    },
+    "blocks": {
+      "core/button": {
+        "variations": {
+          "outline": {
+            "color": {
+              "background": "transparent",
+              "text": "var(--wp--preset--color--accent-1)"
+            },
+            "border": {
+              "color": "currentColor",
+              "width": "2px",
+              "style": "solid",
+              "radius": "8px"
+            },
+            "spacing": {
+              "padding": {
+                "top": "11px",
+                "bottom": "11px",
+                "left": "24px",
+                "right": "24px"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
