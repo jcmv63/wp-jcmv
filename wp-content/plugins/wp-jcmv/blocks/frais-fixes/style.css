@@ -1,0 +1,40 @@
+/**
+ * Encart récapitulatif licence + adhésion (charte §06) — tokens du thème.
+ */
+
+.jcmv-recap-box {
+	display: flex;
+    box-sizing: border-box;
+	justify-content: space-between;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 10px 24px;
+	background: var(--wp--custom--color--rougePale, #fce9e9);
+	border: 1px solid #f6c9c9;
+	border-radius: var(--wp--custom--radius--medium, 14px);
+	padding: 20px 24px;
+	margin: 20px 0;
+}
+
+.jcmv-recap-box__label {
+	font-family: var(--wp--preset--font-family--display);
+	font-size: 13px;
+	font-weight: 600;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: var(--wp--custom--color--rougeFonce, #c8282a);
+}
+
+.jcmv-recap-box__details {
+	margin: 4px 0 0;
+	font-size: 14px;
+	color: var(--wp--custom--color--anthracite, #323642);
+}
+
+.jcmv-recap-box__total {
+	font-family: var(--wp--preset--font-family--display);
+	font-weight: 700;
+	font-size: 24px;
+	color: var(--wp--custom--color--rougeFonce, #c8282a);
+	white-space: nowrap;
+}

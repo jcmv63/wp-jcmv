@@ -1,0 +1,17 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "jcmv/frais-fixes",
+	"title": "Licence & adhésion (saison active)",
+	"category": "jcmv",
+	"icon": "money-alt",
+	"description": "Encart récapitulatif du coût fixe annuel : licence FFJDA + adhésion club et total, alimenté par la saison active (charte §06).",
+	"textdomain": "wp-jcmv",
+	"editorScript": "file:./index.js",
+	"style": "file:./style.css",
+	"render": "file:./render.php",
+	"supports": {
+		"html": false,
+		"multiple": false
+	}
+}

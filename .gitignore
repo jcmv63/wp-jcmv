@@ -6,9 +6,14 @@ wp-content/*
 !wp-content/plugins
 wp-content/plugins/*
 !wp-content/plugins/jcmv-*
+!wp-content/plugins/wp-jcmv
 !wp-content/themes
 wp-content/themes/*
 !wp-content/themes/jcmv-*
+
+# Plugin wp-jcmv — bundles compilés (produits par npm run build / CI, non versionnés — ADR-002)
+wp-content/plugins/wp-jcmv/admin-ui/build/
+wp-content/plugins/wp-jcmv/admin-ui/npm-install.log
 
 # Divers
 .DS_Store

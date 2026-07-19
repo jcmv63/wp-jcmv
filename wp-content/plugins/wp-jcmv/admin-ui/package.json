@@ -1,0 +1,12 @@
+{
+	"name": "jcmv-saisons-admin-ui",
+	"private": true,
+	"description": "App admin Saisons du plugin wp-jcmv (ADR-002).",
+	"scripts": {
+		"build": "wp-scripts build",
+		"start": "wp-scripts start"
+	},
+	"devDependencies": {
+		"@wordpress/scripts": "^30.7.0"
+	}
+}

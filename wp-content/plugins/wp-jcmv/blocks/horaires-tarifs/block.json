@@ -1,0 +1,17 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "jcmv/horaires-tarifs",
+	"title": "Horaires & tarifs (saison active)",
+	"category": "jcmv",
+	"icon": "calendar-alt",
+	"description": "Les cartes de créneaux et tarifs de la saison active : une carte par cours, avec années de naissance, horaires par dojo et bouton d'inscription (charte §06).",
+	"textdomain": "wp-jcmv",
+	"editorScript": "file:./index.js",
+	"style": "file:./style.css",
+	"render": "file:./render.php",
+	"supports": {
+		"html": false,
+		"multiple": false
+	}
+}

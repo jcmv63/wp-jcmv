@@ -1,0 +1,97 @@
+/**
+ * Carte de créneau (charte §06) — tokens du thème uniquement, aucune
+ * couleur en dur (guide §8).
+ */
+
+.jcmv-schedule-card {
+	background: var(--wp--custom--color--blanc, #fff);
+	border: 1px solid var(--wp--custom--color--grisBordure, #e3e5ea);
+	border-left: 5px solid var(--wp--custom--color--rouge, #ee3435);
+	border-radius: var(--wp--custom--radius--medium, 14px);
+	box-shadow: var(--wp--preset--shadow--card);
+	padding: 26px 28px;
+	margin-bottom: 22px;
+}
+
+.jcmv-schedule-card__head {
+	display: flex;
+	align-items: baseline;
+	gap: 10px;
+	flex-wrap: wrap;
+	margin-bottom: 16px;
+}
+
+.jcmv-schedule-card__head h3 {
+	margin: 0;
+}
+
+.jcmv-age-badge {
+	display: inline-block;
+	background: var(--wp--custom--color--grisFond, #f5f6f8);
+	color: var(--wp--preset--color--anthracite-clair, #4b5160);
+	font-size: 13px;
+	padding: 3px 10px;
+	border-radius: var(--wp--custom--radius--round, 999px);
+}
+
+.jcmv-schedule-card__table {
+	width: 100%;
+	border-collapse: collapse;
+	margin: 0 0 4px;
+}
+
+.jcmv-schedule-card__table td {
+	padding: 9px 0;
+	font-size: 14.5px;
+	border-bottom: 1px solid var(--wp--custom--color--grisBordure, #e3e5ea);
+}
+
+.jcmv-schedule-card__table tr:last-child td {
+	border-bottom: none;
+}
+
+.jcmv-schedule-card__day {
+	font-weight: 600;
+	width: 110px;
+}
+
+.jcmv-schedule-card__room {
+	color: var(--wp--preset--color--gris-texte, #6b7280);
+	text-align: right;
+}
+
+.jcmv-schedule-card__price-row {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 16px;
+	margin-top: 18px;
+	padding-top: 16px;
+	border-top: 2px solid var(--wp--custom--color--anthracite, #323642);
+}
+
+.jcmv-schedule-card__price-row + .jcmv-schedule-card__price-row {
+	border-top-width: 1px;
+	border-top-color: var(--wp--custom--color--grisBordure, #e3e5ea);
+}
+
+.jcmv-schedule-card__price-desc {
+	font-size: 14px;
+	color: var(--wp--preset--color--anthracite-clair, #4b5160);
+}
+
+.jcmv-schedule-card__price-desc small {
+	color: var(--wp--preset--color--gris-texte, #6b7280);
+}
+
+.jcmv-schedule-card__price-tag {
+	font-family: var(--wp--preset--font-family--display);
+	font-weight: 700;
+	font-size: 22px;
+	color: var(--wp--custom--color--rougeFonce, #c8282a);
+	white-space: nowrap;
+}
+
+.jcmv-schedule-card__actions {
+	margin-top: 18px;
+}
