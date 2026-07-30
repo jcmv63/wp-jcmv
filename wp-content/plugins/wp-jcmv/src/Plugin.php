@@ -35,13 +35,6 @@ final class Plugin {
 			Admin\TermFields::register();
 			Admin\LieuMetabox::register();
 		}
-
-		/*
-		 * Étapes suivantes (ADR-001/002) :
-		 * - Domain\*  : repositories saisons / créneaux / tarifs, règles métier
-		 * - Rest\*    : namespace jcmv/v1 (app admin Saisons)
-		 * - Admin\*   : app Saisons (REST + JS) en lieu et place du placeholder
-		 */
 	}
 
 	/**

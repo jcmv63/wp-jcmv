@@ -1,9 +1,9 @@
 <?php
 /**
  * Menu d'administration « JCMV » : point d'entrée unique du module pour le
- * bureau. La page d'accueil du menu accueillera l'app Saisons (ADR-002,
- * étape 4) ; en attendant, un placeholder. Les CPT Cours et Lieux s'y
- * rattachent via show_in_menu => 'jcmv-club'.
+ * bureau. La page d'accueil du menu monte l'app Saisons (ADR-002, niveau 3) ;
+ * si le bundle n'est pas compilé, la marche à suivre est affichée à la place.
+ * Les CPT Cours et Lieux s'y rattachent via show_in_menu => 'jcmv-club'.
  *
  * @package wp-jcmv
  */

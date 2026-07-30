@@ -83,12 +83,12 @@ wp-jcmv/
 
 ### Option A : formulaires PHP purs (admin-post.php + PRG)
 
-| Dimension | Évaluation |
-|---|---|
-| Complexité | Faible |
+| Dimension          | Évaluation                            |
+|--------------------|---------------------------------------|
+| Complexité         | Faible                                |
 | Coût de possession | Minimal (zéro build, zéro dépendance) |
-| UX | Rigide (rechargement par action) |
-| Pérennité | Excellente |
+| UX                 | Rigide (rechargement par action)      |
+| Pérennité          | Excellente                            |
 
 **Pour :** zéro build ; sécurité par défaut (cookies + nonces) ; pattern le plus documenté
 de l'écosystème (fiable aussi pour l'assistance par LLM) ; débogage trivial.
@@ -167,12 +167,12 @@ bureau (ADR-001, force n° 1) que sert directement la qualité de cette page.
 
 ## Actions
 
-1. [ ] Endpoints `jcmv/v1` : `seasons` (+ actions `prepare`/`activate`), `schedules`,
+1. [x] Endpoints `jcmv/v1` : `seasons` (+ actions `prepare`/`activate`), `schedules`,
    `pricing` (batch), avec `permission_callback` sur `manage_jcmv_club`.
-2. [ ] Capability `manage_jcmv_club` + attribution au rôle du bureau.
-3. [ ] App « Saisons » (`admin-ui/`) : sélecteur de saison, workflow, frais, grille
+2. [x] Capability `manage_jcmv_club` + attribution au rôle du bureau.
+3. [x] App « Saisons » (`admin-ui/`) : sélecteur de saison, workflow, frais, grille
    créneaux/tarifs — `@wordpress/element` + `@wordpress/components`.
-4. [ ] Champs de paramétrage en formulaires PHP (bornes d'âge des termes).
+4. [x] Champs de paramétrage en formulaires PHP (bornes d'âge des termes).
 5. [ ] GitHub Action de release (build + zip) et intégration Plugin Update Checker.
 6. [ ] Tests des endpoints (permissions, validation, transactions saison).
 7. [ ] Documentation « reprise du projet » (README : architecture, pipeline, comment

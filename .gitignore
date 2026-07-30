@@ -19,3 +19,6 @@ wp-content/plugins/wp-jcmv/admin-ui/npm-install.log
 .DS_Store
 node_modules/
 *.log
+.idea/
+.vscode/
+*.code-workspace

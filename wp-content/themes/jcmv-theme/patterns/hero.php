@@ -25,7 +25,7 @@
 	<!-- wp:buttons {"style":{"spacing":{"blockGap":"var:preset|spacing|40"}}} -->
 	<div class="wp-block-buttons">
 		<!-- wp:button -->
-		<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="#inscription">Rejoindre le club</a></div>
+		<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="/inscription">Rejoindre le club</a></div>
 		<!-- /wp:button -->
 		<!-- wp:button {"textColor":"base","className":"is-style-outline"} -->
 		<div class="wp-block-button is-style-outline"><a class="wp-block-button__link has-base-color has-text-color wp-element-button" href="/horaires-tarifs/">Horaires &amp; tarifs</a></div>

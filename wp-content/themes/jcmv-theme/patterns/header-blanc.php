@@ -32,7 +32,7 @@
 			<!-- wp:buttons -->
 			<div class="wp-block-buttons">
 				<!-- wp:button {"className":"jcmv-header__cta"} -->
-				<div class="wp-block-button jcmv-header__cta"><a class="wp-block-button__link wp-element-button" href="#inscription">Je m'inscris</a></div>
+				<div class="wp-block-button jcmv-header__cta"><a class="wp-block-button__link wp-element-button" href="/inscription">Je m'inscris</a></div>
 				<!-- /wp:button -->
 			</div>
 			<!-- /wp:buttons -->

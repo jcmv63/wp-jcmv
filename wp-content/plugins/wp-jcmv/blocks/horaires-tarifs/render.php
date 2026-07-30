@@ -128,7 +128,7 @@ foreach ( $jcmv_courses as $jcmv_course ) {
 	}
 
 	echo '<div class="jcmv-schedule-card__actions">';
-	echo '<a class="wp-block-button__link wp-element-button" href="#inscription">' . esc_html__( 'Je m\'inscris', 'wp-jcmv' ) . '</a>';
+	echo '<a class="wp-block-button__link wp-element-button" href="/inscription">' . esc_html__( 'Je m\'inscris', 'wp-jcmv' ) . '</a>';
 	echo '</div>';
 
 	echo '</article>';
