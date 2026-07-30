@@ -1,0 +1,75 @@
+# Release du thème jcmv-theme.
+#
+# Déclencheur : tag `theme-vX.Y.Z` (qui doit correspondre au Version: de
+# style.css). Produit : zip du thème, release GitHub, et mise à jour du
+# manifeste theme.json sur la branche `updates` — consommé par l'updater
+# du thème (functions.php).
+
+name: Release thème
+
+on:
+  push:
+    tags: [ 'theme-v*' ]
+
+permissions:
+  contents: write
+
+env:
+  THEME_DIR: wp-content/themes/jcmv-theme
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Version depuis le tag
+        id: v
+        run: echo "version=${GITHUB_REF_NAME#theme-v}" >> "$GITHUB_OUTPUT"
+
+      - name: Vérifier l'en-tête du thème
+        run: |
+          if ! grep -Eq "^Version:[[:space:]]+${{ steps.v.outputs.version }}([[:space:]]|$)" "$THEME_DIR/style.css"; then
+            echo "::error::Le tag ${GITHUB_REF_NAME} ne correspond pas au Version: de style.css"
+            exit 1
+          fi
+
+      - name: Assembler le zip
+        run: |
+          mkdir -p stage/jcmv-theme
+          rsync -a "$THEME_DIR/" stage/jcmv-theme/ \
+            --exclude '.DS_Store' \
+            --exclude '*.log'
+          ( cd stage && zip -rq jcmv-theme.zip jcmv-theme )
+          unzip -l stage/jcmv-theme.zip | head -20
+
+      - name: Créer la release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" stage/jcmv-theme.zip \
+            --title "jcmv-theme ${{ steps.v.outputs.version }}" \
+            --generate-notes
+
+      - name: Mettre à jour le manifeste (branche updates)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git fetch origin updates:updates 2>/dev/null; then
+            git worktree add updates-wt updates
+          else
+            git worktree add --orphan -b updates updates-wt
+          fi
+          cat > updates-wt/theme.json <<EOF
+          {
+            "slug": "jcmv-theme",
+            "version": "${{ steps.v.outputs.version }}",
+            "last_updated": "$(date -u +%F)",
+            "download_url": "https://github.com/${{ github.repository }}/releases/download/${GITHUB_REF_NAME}/jcmv-theme.zip",
+            "details_url": "https://github.com/${{ github.repository }}/releases/tag/${GITHUB_REF_NAME}"
+          }
+          EOF
+          cd updates-wt
+          git add theme.json
+          git commit -m "Manifeste thème ${{ steps.v.outputs.version }}"
+          git push origin updates

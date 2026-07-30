@@ -34,6 +34,7 @@ final class Plugin {
 			Admin\SaisonsPage::register();
 			Admin\TermFields::register();
 			Admin\LieuMetabox::register();
+			Updater::register();
 		}
 	}
 

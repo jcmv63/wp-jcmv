@@ -79,6 +79,49 @@ add_action(
 );
 
 /**
+ * Mises à jour du thème depuis le manifeste GitHub (branche `updates` du
+ * monorepo, publié par le workflow release-theme).
+ */
+define( 'JCMV_THEME_UPDATE_MANIFEST', 'https://raw.githubusercontent.com/jcmv63/wp-jcmv/updates/theme.json' );
+
+add_filter(
+	'pre_set_site_transient_update_themes',
+	function ( $transient ) {
+		if ( empty( $transient->checked ) ) {
+			return $transient;
+		}
+
+		$manifest = get_transient( 'jcmv_theme_update_manifest' );
+		if ( ! is_array( $manifest ) ) {
+			$manifest = array();
+			$response = wp_remote_get( JCMV_THEME_UPDATE_MANIFEST, array( 'timeout' => 10 ) );
+			if ( ! is_wp_error( $response ) && 200 === wp_remote_retrieve_response_code( $response ) ) {
+				$decoded = json_decode( wp_remote_retrieve_body( $response ), true );
+				if ( is_array( $decoded ) ) {
+					$manifest = $decoded;
+				}
+			}
+			set_transient( 'jcmv_theme_update_manifest', $manifest, 6 * HOUR_IN_SECONDS );
+		}
+
+		$current = wp_get_theme( 'jcmv-theme' )->get( 'Version' );
+
+		if ( ! empty( $manifest['version'] )
+			&& ! empty( $manifest['download_url'] )
+			&& version_compare( $manifest['version'], $current, '>' ) ) {
+			$transient->response['jcmv-theme'] = array(
+				'theme'       => 'jcmv-theme',
+				'new_version' => $manifest['version'],
+				'package'     => $manifest['download_url'],
+				'url'         => $manifest['details_url'] ?? '',
+			);
+		}
+
+		return $transient;
+	}
+);
+
+/**
  * Catégorie de compositions (patterns) du club.
  */
 add_action(

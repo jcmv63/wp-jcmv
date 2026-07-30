@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  php:
+    name: Lint PHP & JSON
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+
+      - name: Lint PHP (plugin, thème, scripts)
+        run: |
+          set -e
+          find wp-content/plugins/wp-jcmv wp-content/themes/jcmv-theme scripts -name '*.php' -print0 \
+            | xargs -0 -n1 php -l > /dev/null
+          echo "PHP OK"
+
+      - name: Valider les JSON (theme.json, block.json…)
+        run: |
+          set -e
+          find wp-content/plugins/wp-jcmv wp-content/themes/jcmv-theme -name '*.json' -not -path '*/node_modules/*' -print0 \
+            | xargs -0 -n1 -I{} php -r '
+              $d = json_decode( file_get_contents( "{}" ) );
+              if ( null === $d && "null" !== trim( file_get_contents( "{}" ) ) ) {
+                fwrite( STDERR, "JSON invalide : {}\n" );
+                exit( 1 );
+              }'
+          echo "JSON OK"
+
+  admin-ui:
+    name: Build admin-ui
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: wp-content/plugins/wp-jcmv/admin-ui
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - run: npm install --no-fund --no-audit
+
+      - run: npm run build

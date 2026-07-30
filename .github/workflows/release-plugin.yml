@@ -1,0 +1,92 @@
+# Release du plugin wp-jcmv (ADR-002).
+#
+# Déclencheur : tag `plugin-vX.Y.Z` (qui doit correspondre au Version: de
+# wp-jcmv.php). Produit : zip sans sources JS ni node_modules, release GitHub,
+# et mise à jour du manifeste plugin.json sur la branche `updates` — consommé
+# par l'updater du plugin pour afficher « Mise à jour disponible » dans l'admin.
+
+name: Release plugin
+
+on:
+  push:
+    tags: [ 'plugin-v*' ]
+
+permissions:
+  contents: write
+
+env:
+  PLUGIN_DIR: wp-content/plugins/wp-jcmv
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Version depuis le tag
+        id: v
+        run: echo "version=${GITHUB_REF_NAME#plugin-v}" >> "$GITHUB_OUTPUT"
+
+      - name: Vérifier l'en-tête du plugin
+        run: |
+          if ! grep -Eq "Version:[[:space:]]+${{ steps.v.outputs.version }}([[:space:]]|$)" "$PLUGIN_DIR/wp-jcmv.php"; then
+            echo "::error::Le tag ${GITHUB_REF_NAME} ne correspond pas au Version: de wp-jcmv.php"
+            exit 1
+          fi
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build admin-ui
+        working-directory: wp-content/plugins/wp-jcmv/admin-ui
+        run: |
+          npm install --no-fund --no-audit
+          npm run build
+
+      - name: Assembler le zip
+        run: |
+          mkdir -p stage/wp-jcmv
+          rsync -a "$PLUGIN_DIR/" stage/wp-jcmv/ \
+            --exclude 'admin-ui/node_modules' \
+            --exclude 'admin-ui/src' \
+            --exclude 'admin-ui/package.json' \
+            --exclude 'admin-ui/package-lock.json' \
+            --exclude '*.log' \
+            --exclude '.DS_Store'
+          ( cd stage && zip -rq wp-jcmv.zip wp-jcmv )
+          unzip -l stage/wp-jcmv.zip | head -20
+
+      - name: Créer la release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" stage/wp-jcmv.zip \
+            --title "wp-jcmv ${{ steps.v.outputs.version }}" \
+            --generate-notes
+
+      - name: Mettre à jour le manifeste (branche updates)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git fetch origin updates:updates 2>/dev/null; then
+            git worktree add updates-wt updates
+          else
+            git worktree add --orphan -b updates updates-wt
+          fi
+          cat > updates-wt/plugin.json <<EOF
+          {
+            "name": "JCMV — Gestion du club",
+            "slug": "wp-jcmv",
+            "version": "${{ steps.v.outputs.version }}",
+            "requires": "6.7",
+            "requires_php": "8.2",
+            "last_updated": "$(date -u +%F)",
+            "download_url": "https://github.com/${{ github.repository }}/releases/download/${GITHUB_REF_NAME}/wp-jcmv.zip",
+            "details_url": "https://github.com/${{ github.repository }}/releases/tag/${GITHUB_REF_NAME}"
+          }
+          EOF
+          cd updates-wt
+          git add plugin.json
+          git commit -m "Manifeste plugin ${{ steps.v.outputs.version }}"
+          git push origin updates
