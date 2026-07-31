@@ -45,7 +45,7 @@
 		<!-- wp:column {"width":"60%"} -->
 		<div class="wp-block-column" style="flex-basis:60%">
 
-			<!-- wp:query {"query":{"perPage":4,"offset":1,"postType":"post","order":"desc","orderBy":"date"}} -->
+			<!-- wp:query {"query":{"perPage":8,"offset":1,"postType":"post","order":"desc","orderBy":"date"}} -->
 			<div class="wp-block-query">
 				<!-- wp:post-template {"layout":{"type":"grid","minimumColumnWidth":"260px"}} -->
 					<!-- wp:group {"className":"jcmv-card jcmv-card--mini","style":{"spacing":{"blockGap":"var:preset|spacing|30"}},"layout":{"type":"flex","flexWrap":"nowrap","verticalAlignment":"center"}} -->
