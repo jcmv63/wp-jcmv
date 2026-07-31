@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       JCMV — Gestion du club
  * Description:       Cours, créneaux, tarifs, lieux et catégories d'âge du Judo Club des Martres-de-Veyre, versionnés par saison sportive (ADR-001/002).
- * Version:           0.1.0
+ * Version:           0.1.1
  * Requires at least: 6.7
  * Requires PHP:      8.2
  * Author:            Alban
