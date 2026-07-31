@@ -31,7 +31,7 @@ final class Menu {
 			Capabilities::MANAGE,
 			self::SLUG,
 			array( self::class, 'render_app' ),
-			'dashicons-universal-access',
+			'dashicons-editor-kitchensink',
 			26
 		);
 
