@@ -148,14 +148,11 @@
 
 /* ---------- Footer (charte : fond anthracite foncé) ---------- */
 
-.jcmv-footer {
-	text-align: center;
-}
-
 .jcmv-footer__logo {
 	display: inline-block;
 	line-height: 0;
 	opacity: 0.92;
+	margin-bottom: 12px;
 }
 
 .jcmv-footer__logo img {
@@ -170,16 +167,64 @@
 	text-transform: uppercase;
 }
 
-.jcmv-footer__links a {
+.jcmv-footer__nav {
+	justify-content: space-around;
+}
+
+.jcmv-footer__list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.jcmv-footer__list li {
+	padding: 4px 0;
+	font-size: 14px;
+}
+
+.jcmv-footer__list a {
 	color: #c4c8d2;
 	font-weight: 400;
 	text-decoration: none;
 }
 
-.jcmv-footer__links a:hover,
-.jcmv-footer__links a:focus-visible {
+.jcmv-footer__list a:hover,
+.jcmv-footer__list a:focus-visible {
 	color: var(--wp--preset--color--base);
 	text-decoration: underline;
+}
+
+.jcmv-footer__follow {
+	text-align: right;
+}
+
+.jcmv-footer__social {
+	display: flex;
+	justify-content: flex-end;
+	gap: 25px;
+	margin-top: 4px;
+}
+
+.jcmv-footer__social a {
+	display: inline-block;
+	line-height: 0;
+	opacity: 0.85;
+	transition: opacity 0.15s;
+}
+
+.jcmv-footer__social a:hover,
+.jcmv-footer__social a:focus-visible {
+	opacity: 1;
+}
+
+.jcmv-footer__social img {
+	width: 28px;
+	height: 28px;
+}
+
+.jcmv-footer__bottom {
+	border-top: 1px solid rgba(255, 255, 255, 0.08);
+	padding-top: var(--wp--preset--spacing--50);
 }
 
 .jcmv-footer__copyright {
