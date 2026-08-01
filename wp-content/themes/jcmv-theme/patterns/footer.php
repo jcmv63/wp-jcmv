@@ -41,13 +41,13 @@
 				<!-- wp:group {"layout":{"type":"constrained"},"style":{"spacing":{"blockGap":"var:preset|spacing|30"}}} -->
 				<div class="wp-block-group">
 					<!-- wp:paragraph {"className":"jcmv-footer__title"} -->
-					<p class="jcmv-footer__title">Vie du club</p>
+					<p class="jcmv-footer__title">Le club</p>
 					<!-- /wp:paragraph -->
 					<!-- wp:list {"className":"jcmv-footer__list"} -->
 					<ul class="wp-block-list jcmv-footer__list">
-						<!-- wp:list-item --><li><a href="/le-club">Le club</a></li><!-- /wp:list-item -->
-						<!-- wp:list-item --><li><a href="/actualites">Actualités</a></li><!-- /wp:list-item -->
-						<!-- wp:list-item --><li><a href="/inscription">Inscription</a></li><!-- /wp:list-item -->
+						<!-- wp:list-item --><li><a href="/le-club">À propos</a></li><!-- /wp:list-item -->
+						<!-- wp:list-item --><li><a href="/lequipe">L'équipe</a></li><!-- /wp:list-item -->
+						<!-- wp:list-item --><li><a href="/partenaires">Les partenaires</a></li><!-- /wp:list-item -->
 					</ul>
 					<!-- /wp:list -->
 				</div>
@@ -61,8 +61,8 @@
 					<!-- wp:list {"className":"jcmv-footer__list"} -->
 					<ul class="wp-block-list jcmv-footer__list">
 						<!-- wp:list-item --><li><a href="/horaires-tarifs">Horaires &amp; tarifs</a></li><!-- /wp:list-item -->
-						<!-- wp:list-item --><li><a href="/mentions-legales">Mentions légales</a></li><!-- /wp:list-item -->
 						<!-- wp:list-item --><li><a href="/contact">Contact</a></li><!-- /wp:list-item -->
+            <!-- wp:list-item --><li><a href="/mentions-legales">Mentions légales</a></li><!-- /wp:list-item -->
 					</ul>
 					<!-- /wp:list -->
 				</div>

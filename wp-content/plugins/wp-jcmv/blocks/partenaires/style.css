@@ -1,0 +1,168 @@
+/**
+ * Partenaires — tokens du thème uniquement, aucune couleur en dur (guide §8).
+ *
+ * Toutes les cartes ont la même largeur : elle découle du nombre de colonnes,
+ * pas de la forme du logo. Un nom d'enseigne allongé n'occupe donc plus deux
+ * fois plus de place qu'un logo carré — égalité de traitement entre sponsors.
+ *
+ * La hauteur de la boîte du logo étant fixe elle aussi, les cartes forment
+ * des rectangles identiques sans qu'on ait à imposer de ratio.
+ *
+ * Le nombre de colonnes est piloté par --jcmv-cols : les media queries ne
+ * font que changer ce nombre, la formule de largeur est écrite une seule fois.
+ */
+
+.jcmv-partners {
+	--jcmv-cols: 3;
+	--jcmv-gap: var(--wp--preset--spacing--50, 24px);
+	/* Hauteur de la boîte du logo. Plafonnée par la taille d'image
+	   jcmv-logo (600 × 200) : ne pas dépasser 100 px sans la revoir. */
+	--jcmv-logo-h: 72px;
+	--jcmv-pad-v: var(--wp--preset--spacing--60, 32px);
+
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: stretch;
+	/* Une dernière rangée incomplète reste centrée — c'est ce que le flex
+	   apporte face à CSS Grid, qui laisserait un trou à droite. */
+	justify-content: center;
+	gap: var(--jcmv-gap);
+}
+
+/*
+ * L'item n'est qu'un conteneur : c'est le lien qui porte la carte, pour que
+ * toute la surface soit cliquable et que le focus clavier encadre la carte
+ * entière — pas seulement le logo.
+ */
+.jcmv-partners__item {
+	display: flex;
+	flex: 0 0 calc( ( 100% - ( var( --jcmv-cols ) - 1 ) * var( --jcmv-gap ) ) / var( --jcmv-cols ) );
+	min-width: 0;
+}
+
+/*
+ * Masquage visuel accessible. Classe préfixée plutôt que .screen-reader-text :
+ * cette dernière vient du CSS du core, dont le chargement dépend du contexte.
+ */
+.jcmv-sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+	border: 0;
+}
+
+.jcmv-partners__link {
+	display: flex;
+	flex: 1;
+	min-width: 0;
+	align-items: center;
+	justify-content: center;
+	line-height: 0;
+	background: var(--wp--custom--color--blanc, #fff);
+	border: 1px solid var(--wp--custom--color--grisBordure, #e3e5ea);
+	border-radius: var(--wp--custom--radius--medium, 14px);
+	/* Même relief que .jcmv-card (articles) : bordure + ombre du thème. */
+	box-shadow: var(--wp--preset--shadow--card);
+	padding: var(--jcmv-pad-v) var(--wp--preset--spacing--50, 24px);
+}
+
+/*
+ * La boîte de l'image garde toujours --jcmv-logo-h de haut : c'est ce qui
+ * garantit des cartes de hauteur identique. Un logo trop allongé pour la
+ * largeur disponible est réduit *à l'intérieur* de cette boîte par
+ * object-fit, sans la déformer.
+ */
+.jcmv-partners__logo {
+	height: var(--jcmv-logo-h);
+	width: auto;
+	max-width: 100%;
+	/* contain, jamais cover : un logo rogné, c'est un partenaire mécontent. */
+	object-fit: contain;
+}
+
+/* Le lien reste perceptible au survol et au clavier sans altérer le logo. */
+a.jcmv-partners__link {
+	transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+/* L'ombre étant déjà là au repos, l'état survolé se lit à la translation
+   et à la bordure rouge — pas de seconde ombre en dur (guide §8). */
+a.jcmv-partners__link:hover,
+a.jcmv-partners__link:focus-visible {
+	transform: translateY(-2px);
+	border-color: var(--wp--custom--color--rouge, #ee3435);
+}
+
+/* La bordure rouge ne suffit pas seule (charte §03) : contour de focus net. */
+a.jcmv-partners__link:focus-visible {
+	outline: 2px solid var(--wp--custom--color--rouge, #ee3435);
+	outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	a.jcmv-partners__link {
+		transition: none;
+	}
+
+	a.jcmv-partners__link:hover,
+	a.jcmv-partners__link:focus-visible {
+		transform: none;
+	}
+}
+
+/*
+ * --- Variante ruban : page d'accueil, une ligne de 6 ---
+ *
+ * Le ruban garde la boîte basse d'origine : ses cartes sont deux fois plus
+ * étroites que celles de la grille, une boîte haute les rendrait presque
+ * carrées et gonflerait le bandeau d'accueil. La grille est une vitrine,
+ * le ruban un rappel — deux densités pour deux rôles.
+ */
+.jcmv-partners--ruban {
+	--jcmv-cols: 6;
+	--jcmv-logo-h: 48px;
+	--jcmv-pad-v: var(--wp--preset--spacing--50, 24px);
+}
+
+/* --- Adaptation : on ne change que le nombre de colonnes --- */
+
+/* Tablette : la grille tomberait à ~230 px par carte, le ruban à ~115 px. */
+@media (max-width: 1024px) {
+	.jcmv-partners--grille {
+		--jcmv-cols: 2;
+	}
+
+	.jcmv-partners--ruban {
+		--jcmv-cols: 3;
+	}
+}
+
+/* Mobile : deux colonnes partout, logos un cran plus bas. */
+@media (max-width: 781px) {
+	.jcmv-partners--grille,
+	.jcmv-partners--ruban {
+		--jcmv-cols: 2;
+		--jcmv-gap: var(--wp--preset--spacing--40, 16px);
+		--jcmv-logo-h: 48px;
+		--jcmv-pad-v: var(--wp--preset--spacing--40, 16px);
+	}
+}
+
+/*
+ * Petits écrans : à deux colonnes il ne resterait que ~120 px utiles, et la
+ * plupart des logos seraient rétrécis sous la hauteur commune. Une colonne.
+ */
+@media (max-width: 480px) {
+	.jcmv-partners--grille,
+	.jcmv-partners--ruban {
+		--jcmv-cols: 1;
+	}
+}

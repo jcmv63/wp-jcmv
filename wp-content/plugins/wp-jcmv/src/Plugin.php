@@ -25,6 +25,7 @@ final class Plugin {
 
 		add_action( 'init', array( Registration\PostTypes::class, 'register' ) );
 		add_action( 'init', array( Registration\Taxonomies::class, 'register' ) );
+		Registration\ImageSizes::register();
 		Registration\DeletionGuard::register();
 		Rest\SeasonsController::register();
 		Front\Blocks::register();
@@ -34,6 +35,7 @@ final class Plugin {
 			Admin\SaisonsPage::register();
 			Admin\TermFields::register();
 			Admin\LieuMetabox::register();
+			Admin\PartenaireMetabox::register();
 			Updater::register();
 		}
 	}
@@ -45,6 +47,7 @@ final class Plugin {
 	 */
 	public static function activate(): void {
 		Domain\Schema::migrate();
+		Registration\ImageSizes::add();
 		Registration\PostTypes::register();
 		Registration\Taxonomies::register();
 		Domain\Seed::run();

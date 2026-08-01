@@ -95,8 +95,13 @@ Pour une page ponctuelle sans bandeau titre : réglages de la page → Modèle �
 ## 6. Patterns éditoriaux (catégorie « JCMV » dans l'inséreur)
 
 `jcmv/hero`, `jcmv/chiffres-cles`, `jcmv/temoignage`, `jcmv/faq` (bloc Details natif,
-accessible sans JS), `jcmv/dojos`, `jcmv/bandeau-inscription`. Un pattern inséré devient
-une copie indépendante : modifier le fichier ne change pas les contenus déjà en place.
+accessible sans JS), `jcmv/dojos`, `jcmv/bandeau-inscription`, `jcmv/partenaires`. Un
+pattern inséré devient une copie indépendante : modifier le fichier ne change pas les
+contenus déjà en place.
+
+`jcmv/partenaires` est le seul pattern qui embarque un bloc du plugin
+(`jcmv/partenaires`, variante ruban) : si `wp-jcmv` est désactivé, l'emplacement affiche
+un bloc introuvable. Les autres n'utilisent que des blocs du core.
 
 ## 7. Styles de blocs et composants CSS
 
@@ -109,6 +114,17 @@ une copie indépendante : modifier le fichier ne change pas les contenus déjà 
   `jcmv-kicker`, `jcmv-on-dark-muted`, `jcmv-stat…`, `jcmv-quote…`, `jcmv-accordion`,
   `jcmv-location…`. Le fichier est chargé sur le front **et** dans l'éditeur
   (`add_editor_style`).
+- **Partenaires** (CSS porté par le plugin, `blocks/partenaires/style.css`) :
+  `jcmv-partners`, modificateurs `--grille` / `--ruban`. Cartes de largeur égale —
+  la largeur découle du nombre de colonnes `--jcmv-cols` (grille 3 / ruban 6 en
+  desktop, 2 / 3 sous 1024 px, 2 sous 782 px, 1 sous 480 px). Les media queries ne
+  changent que ce nombre : la formule de largeur n'est écrite qu'une fois. Boîte du
+  logo via `--jcmv-logo-h` — 72 px en grille (vitrine), 48 px en ruban (rappel :
+  cartes deux fois plus étroites, une boîte haute les rendrait presque carrées) —
+  avec `object-fit: contain` : un logo se contient, il ne se rogne jamais. Flex et
+  non CSS Grid, pour que la dernière rangée incomplète reste centrée.
+  **`--jcmv-logo-h` est plafonné par la taille d'image `jcmv-logo` (600 × 200,
+  déclarée dans le plugin) : au-delà de 100 px, revoir la taille puis régénérer.**
 
 ## 8. Consommer les tokens depuis le plugin `wp-jcmv`
 

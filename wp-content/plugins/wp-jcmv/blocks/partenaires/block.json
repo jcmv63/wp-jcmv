@@ -1,0 +1,31 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "jcmv/partenaires",
+	"title": "Partenaires du club",
+	"category": "jcmv",
+	"icon": "awards",
+	"description": "Les logos des partenaires publiés, triés par ordre d'affichage. Variante « grille » pour la page dédiée (tous les partenaires), variante « ruban » pour la page d'accueil (une ligne, nombre réglable).",
+	"textdomain": "wp-jcmv",
+	"attributes": {
+		"variante": {
+			"type": "string",
+			"default": "grille",
+			"enum": [ "grille", "ruban" ]
+		},
+		"limite": {
+			"type": "number",
+			"default": 6
+		}
+	},
+	"editorScript": "file:./index.js",
+	"style": "file:./style.css",
+	"render": "file:./render.php",
+	"supports": {
+		"html": false,
+		"multiple": true,
+		"spacing": {
+			"margin": [ "top", "bottom" ]
+		}
+	}
+}

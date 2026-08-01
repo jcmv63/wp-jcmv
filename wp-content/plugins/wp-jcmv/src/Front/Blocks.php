@@ -23,6 +23,7 @@ final class Blocks {
 	public static function register_types(): void {
 		register_block_type( JCMV_PLUGIN_DIR . 'blocks/horaires-tarifs' );
 		register_block_type( JCMV_PLUGIN_DIR . 'blocks/frais-fixes' );
+		register_block_type( JCMV_PLUGIN_DIR . 'blocks/partenaires' );
 	}
 
 	/**
