@@ -1,10 +1,10 @@
 {
   "name": "JCMV — Gestion du club",
   "slug": "wp-jcmv",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "requires": "6.7",
   "requires_php": "8.2",
-  "last_updated": "2026-07-31",
-  "download_url": "https://github.com/jcmv63/wp-jcmv/releases/download/plugin-v0.1.1/wp-jcmv.zip",
-  "details_url": "https://github.com/jcmv63/wp-jcmv/releases/tag/plugin-v0.1.1"
+  "last_updated": "2026-08-01",
+  "download_url": "https://github.com/jcmv63/wp-jcmv/releases/download/plugin-v0.2.0/wp-jcmv.zip",
+  "details_url": "https://github.com/jcmv63/wp-jcmv/releases/tag/plugin-v0.2.0"
 }
