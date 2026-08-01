@@ -148,11 +148,19 @@
 
 /* ---------- Footer (charte : fond anthracite foncé) ---------- */
 
+/*
+ * `align-self` surcharge le `verticalAlignment: top` du groupe identité :
+ * le logo se recentre face au bloc adresse, quel que soit son nombre de
+ * lignes. Volontairement un alignement et non une hauteur — caler la taille
+ * du logo sur celle de l'adresse coupleraient une constante graphique à un
+ * contenu éditorial appelé à changer.
+ */
 .jcmv-footer__logo {
 	display: inline-block;
+	flex: 0 0 auto;
+	align-self: center;
 	line-height: 0;
 	opacity: 0.92;
-	margin-bottom: 12px;
 }
 
 .jcmv-footer__logo img {
@@ -167,8 +175,58 @@
 	text-transform: uppercase;
 }
 
-.jcmv-footer__nav {
-	justify-content: space-around;
+/*
+ * `.jcmv-footer` n'ayant plus de padding horizontal (c'est ce qui permet au
+ * filet de la barre du bas d'aller de bord à bord), la zone haute porte ses
+ * propres gouttières. Le `max-width` vaut donc 1080 + 2 × 24 : la BOÎTE fait
+ * 1128 px pour que son CONTENU en fasse 1080, aligné au pixel près sur
+ * `__bottom-inner`, qui lui est contraint à 1080 dans un conteneur déjà
+ * doté du même padding.
+ */
+.jcmv-footer__top {
+	max-width: calc(var(--wp--style--global--content-size) + var(--wp--preset--spacing--50) * 2);
+	padding-inline: var(--wp--preset--spacing--50);
+}
+
+/*
+ * Rupture pilotée par le contenu, sans media query. `display: flex`,
+ * `flex-wrap` et `gap` viennent des `layout` du cœur (footer.php) ; on ne
+ * fournit ici que les `flex-basis`, c'est-à-dire la largeur en dessous de
+ * laquelle chaque bloc refuse de rester sur sa ligne.
+ *
+ * Les valeurs sont mesurées sur le contenu réel, pas devinées :
+ *   - 490 px = 3 listes de 140 px (le titre « INFOS PRATIQUES » est le plus
+ *     large) + 2 gouttières de 32 px.
+ *   - 220 px = l'email, chaîne insécable la plus longue du bloc adresse.
+ * Si un libellé s'allonge, c'est ici qu'il faut recalculer.
+ *
+ * `flex: 1 1 auto` sur l'identité : elle absorbe sa part de l'espace libre,
+ * ce qui répartit le blanc de façon homogène sur toute la rangée au lieu de
+ * le concentrer entre les colonnes de liens. Le bloc adresse reste calé à
+ * gauche dans sa boîte élargie. Corollaire : une fois seule sur sa ligne
+ * elle s'étire sur toute la largeur — sans effet visible, son contenu étant
+ * aligné à gauche.
+ *
+ * À savoir : le CSS ne peut pas cibler un élément qui a wrappé. Toute mise
+ * en page différente à l'état « rompu » (centrage, etc.) exigerait une
+ * requête, et donc deux définitions concurrentes du même seuil.
+ */
+.jcmv-footer__identity {
+	flex: 1 1 auto;
+}
+
+.jcmv-footer__links {
+	flex: 1 1 490px;
+}
+
+.jcmv-footer__coords {
+	flex: 1 1 220px;
+	min-width: 0;
+}
+
+.jcmv-footer__links > * {
+	flex: 1 1 140px;
+	min-width: 0;
 }
 
 .jcmv-footer__list {
@@ -178,8 +236,11 @@
 }
 
 .jcmv-footer__list li {
-	padding: 4px 0;
+	margin: 0;
+	padding: 0;
 	font-size: 14px;
+	line-height: 1.5;
+	margin-top: 10px;
 }
 
 .jcmv-footer__list a {
@@ -194,37 +255,111 @@
 	text-decoration: underline;
 }
 
-.jcmv-footer__follow {
-	text-align: right;
+/*
+ * Filet de sécurité : `.screen-reader-text` vient normalement du cœur de
+ * WordPress (wp-block-library), mais les plugins d'optimisation qui
+ * suppriment le CSS « inutilisé » la retirent — aucun élément visible ne
+ * l'emploie. Le libellé masqué apparaîtrait alors en clair dans le footer.
+ */
+.screen-reader-text {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	border: 0;
+	overflow: hidden;
+	clip-path: inset(50%);
+	word-wrap: normal !important;
+}
+
+.jcmv-footer__contact {
+	margin: 0;
+	font-style: normal;
+	font-size: 14px;
+	line-height: 1.7;
+	color: #c4c8d2;
+	overflow-wrap: anywhere;
+}
+
+.jcmv-footer__contact a {
+	color: inherit;
+	font-weight: 400;
+	text-decoration: none;
+}
+
+.jcmv-footer__contact a:hover,
+.jcmv-footer__contact a:focus-visible {
+	color: var(--wp--preset--color--base);
+	text-decoration: underline;
 }
 
 .jcmv-footer__social {
 	display: flex;
-	justify-content: flex-end;
 	gap: 25px;
-	margin-top: 4px;
+	flex-shrink: 0;
 }
 
 .jcmv-footer__social a {
 	display: inline-block;
 	line-height: 0;
-	opacity: 0.85;
-	transition: opacity 0.15s;
+	color: #c4c8d2;
+	transition: color 0.15s;
 }
 
 .jcmv-footer__social a:hover,
 .jcmv-footer__social a:focus-visible {
-	opacity: 1;
+	color: var(--wp--preset--color--base);
 }
 
-.jcmv-footer__social img {
+.jcmv-footer__social svg {
+	display: block;
 	width: 28px;
 	height: 28px;
+	fill: currentColor;
 }
 
+/*
+ * Barre du bas en deux couches, pour que le filet traverse tout l'écran
+ * alors que son contenu reste aligné sur les colonnes du dessus.
+ *
+ * `__bottom` porte le filet et va de bord à bord. `max-width: none` suffit :
+ * `.jcmv-footer` n'a plus de padding horizontal, donc l'élément remplit
+ * toute la largeur. Surtout, on ne peut PAS le sortir avec une marge
+ * négative — la disposition « constrained » du cœur pose
+ * `margin-left/right: auto !important` sur ses enfants, qui l'emporterait.
+ * D'où le padding horizontal déplacé sur `__top` et sur cette barre.
+ *
+ * `__bottom-inner` reprend la contrainte à 1080 px via son propre layout,
+ * donc le copyright s'aligne exactement sur le logo au-dessus.
+ *
+ * Pas de `100vw` ici : cette unité inclut la barre de défilement et
+ * provoquerait un débordement horizontal sur desktop.
+ */
 .jcmv-footer__bottom {
-	border-top: 1px solid rgba(255, 255, 255, 0.08);
+	max-width: none;
+	padding-inline: var(--wp--preset--spacing--50);
 	padding-top: var(--wp--preset--spacing--50);
+	border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.jcmv-footer__bottom-inner {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px 24px;
+	flex-wrap: wrap;
+}
+
+.jcmv-footer__bottom-inner > * {
+	margin-block: 0;
+}
+
+@media (max-width: 599px) {
+	.jcmv-footer__bottom-inner {
+		flex-direction: column-reverse;
+		align-items: flex-start;
+	}
 }
 
 .jcmv-footer__copyright {
