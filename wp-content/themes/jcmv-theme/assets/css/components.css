@@ -11,6 +11,29 @@
  *   ombre      : --wp--preset--shadow--card
  */
 
+/*
+ * Gras éditorial — ceinture et bretelles.
+ *
+ * La feuille du navigateur déclare `b, strong { font-weight: bolder }`, une
+ * valeur RELATIVE au poids hérité, dont la table de correspondance est :
+ * 100–300 → 400, 400–500 → 700, 600–700 → 900.
+ *
+ * Twenty Twenty-Five impose `fontWeight: 300` à la racine ; le thème enfant ne
+ * le redéfinissait pas, la fusion de theme.json se faisant propriété par
+ * propriété. Le corps de texte héritait donc de 300, `bolder` atterrissait sur
+ * 400, et aucune fonte Archivo 300 n'étant déclarée le texte courant était lui
+ * aussi substitué en 400 : gras et normal rendus par la même fonte, aucune
+ * différence visible. Constaté en production le 2026-08-02.
+ *
+ * La racine est désormais à 400 dans theme.json, ce qui suffit à réparer.
+ * Cette règle absolue met le résultat à l'abri d'un futur changement de poids
+ * à la racine, qui rejouerait silencieusement le même scénario.
+ */
+strong,
+b {
+	font-weight: 700;
+}
+
 /* ---------- Footer collé en bas de page ---------- */
 
 .wp-site-blocks {
