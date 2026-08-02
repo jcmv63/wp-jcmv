@@ -25,7 +25,18 @@
 				<!-- wp:post-template -->
 					<!-- wp:group {"className":"jcmv-card jcmv-card--post","style":{"spacing":{"blockGap":"0"}},"layout":{"type":"constrained"}} -->
 					<div class="wp-block-group jcmv-card jcmv-card--post">
-						<!-- wp:post-featured-image {"isLink":true,"aspectRatio":"3/2"} /-->
+						<?php
+					/*
+					 * `sizeSlug` explicite : sans lui, le cœur retombe sur la taille
+					 * `post-thumbnail`, que ce thème ne définit pas — et sert alors
+					 * le fichier d'origine. Mesuré le 2026-08-02 : 498 Kio pour cette
+					 * carte, 527 Kio pour une vignette de 96 px.
+					 *
+					 * Carte vedette : colonne à 40 % de 1080 px, soit ~420 px rendus,
+					 * ~840 px sur écran HiDPI. `large` (1024) couvre.
+					 */
+					?>
+					<!-- wp:post-featured-image {"isLink":true,"aspectRatio":"3/2","sizeSlug":"large"} /-->
 						<!-- wp:group {"className":"jcmv-card__body","style":{"spacing":{"padding":{"top":"var:preset|spacing|40","bottom":"var:preset|spacing|40","left":"var:preset|spacing|40","right":"var:preset|spacing|40"},"blockGap":"var:preset|spacing|20"}},"layout":{"type":"constrained"}} -->
 						<div class="wp-block-group jcmv-card__body" style="padding-top:var(--wp--preset--spacing--40);padding-right:var(--wp--preset--spacing--40);padding-bottom:var(--wp--preset--spacing--40);padding-left:var(--wp--preset--spacing--40)">
 							<!-- wp:post-date {"fontSize":"small","textColor":"gris-texte"} /-->
@@ -50,7 +61,8 @@
 				<!-- wp:post-template {"layout":{"type":"grid","minimumColumnWidth":"260px"}} -->
 					<!-- wp:group {"className":"jcmv-card jcmv-card--mini","style":{"spacing":{"blockGap":"var:preset|spacing|30"}},"layout":{"type":"flex","flexWrap":"nowrap","verticalAlignment":"center"}} -->
 					<div class="wp-block-group jcmv-card jcmv-card--mini">
-						<!-- wp:post-featured-image {"isLink":true,"aspectRatio":"1","width":"96px"} /-->
+						<?php // Carte compacte : 96 px rendus, ~192 px en HiDPI. `medium` (300) suffit largement. ?>
+					<!-- wp:post-featured-image {"isLink":true,"aspectRatio":"1","width":"96px","sizeSlug":"medium"} /-->
 						<!-- wp:group {"className":"jcmv-card__body","style":{"spacing":{"padding":{"top":"var:preset|spacing|30","bottom":"var:preset|spacing|30","right":"var:preset|spacing|30"},"blockGap":"4px"}},"layout":{"type":"constrained"}} -->
 						<div class="wp-block-group jcmv-card__body" style="padding-top:var(--wp--preset--spacing--30);padding-right:var(--wp--preset--spacing--30);padding-bottom:var(--wp--preset--spacing--30)">
 							<!-- wp:post-date {"fontSize":"small","textColor":"gris-texte"} /-->
