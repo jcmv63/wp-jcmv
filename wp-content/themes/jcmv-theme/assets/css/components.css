@@ -73,20 +73,28 @@
 	height: auto;
 }
 
+/*
+ * Les sélecteurs visent `.wp-block-navigation-item__content` et non `a`.
+ * Le bloc navigation est en `openSubmenusOnClick` (voir patterns/header*.php),
+ * donc le parent d'un sous-menu est rendu par le cœur comme un `<button>` et
+ * non comme un `<a>` : « Le club » échapperait à toute règle ciblant `a`.
+ * Cette classe est posée par WordPress sur les deux, lien comme bouton.
+ */
+
 /* Liens de nav : gris clair au repos, blanc au survol/actif */
-.jcmv-header .wp-block-navigation__container .wp-block-navigation-item a {
+.jcmv-header .wp-block-navigation__container .wp-block-navigation-item__content {
 	color: #c4c8d2;
 	text-decoration: none;
 	transition: color 0.15s;
 }
 
-.jcmv-header .wp-block-navigation__container .wp-block-navigation-item a:hover,
-.jcmv-header .wp-block-navigation__container .wp-block-navigation-item a:focus-visible {
+.jcmv-header .wp-block-navigation__container .wp-block-navigation-item__content:hover,
+.jcmv-header .wp-block-navigation__container .wp-block-navigation-item__content:focus-visible {
 	color: var(--wp--preset--color--base);
 }
 
 /* Onglet actif : blanc + soulignement rouge */
-.jcmv-header .wp-block-navigation__container .current-menu-item > a,
+.jcmv-header .wp-block-navigation__container .current-menu-item > .wp-block-navigation-item__content,
 .jcmv-header .wp-block-navigation__container [aria-current="page"] {
 	color: var(--wp--preset--color--base);
 	border-bottom: 2px solid var(--wp--preset--color--accent-1);
@@ -100,12 +108,12 @@
 }
 
 /* Menu déroulant mobile : items séparés, actif en rouge (charte, nav mobile) */
-.jcmv-header .wp-block-navigation__responsive-container.is-menu-open .wp-block-navigation-item a {
+.jcmv-header .wp-block-navigation__responsive-container.is-menu-open .wp-block-navigation-item__content {
 	padding: 13px 0;
 	border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.jcmv-header .wp-block-navigation__responsive-container.is-menu-open .current-menu-item > a,
+.jcmv-header .wp-block-navigation__responsive-container.is-menu-open .current-menu-item > .wp-block-navigation-item__content,
 .jcmv-header .wp-block-navigation__responsive-container.is-menu-open [aria-current="page"] {
 	color: var(--wp--preset--color--accent-1);
 	border-bottom-color: rgba(255, 255, 255, 0.08);
@@ -117,16 +125,16 @@
 	border-bottom: 1px solid var(--wp--preset--color--accent-6);
 }
 
-.jcmv-header--light .wp-block-navigation__container .wp-block-navigation-item a {
+.jcmv-header--light .wp-block-navigation__container .wp-block-navigation-item__content {
 	color: var(--wp--preset--color--anthracite-clair);
 }
 
-.jcmv-header--light .wp-block-navigation__container .wp-block-navigation-item a:hover,
-.jcmv-header--light .wp-block-navigation__container .wp-block-navigation-item a:focus-visible {
+.jcmv-header--light .wp-block-navigation__container .wp-block-navigation-item__content:hover,
+.jcmv-header--light .wp-block-navigation__container .wp-block-navigation-item__content:focus-visible {
 	color: var(--wp--preset--color--accent-2);
 }
 
-.jcmv-header--light .wp-block-navigation__container .current-menu-item > a,
+.jcmv-header--light .wp-block-navigation__container .current-menu-item > .wp-block-navigation-item__content,
 .jcmv-header--light .wp-block-navigation__container [aria-current="page"] {
 	color: var(--wp--preset--color--contrast);
 	border-bottom: 2px solid var(--wp--preset--color--accent-1);
@@ -137,11 +145,11 @@
 	color: var(--wp--preset--color--contrast);
 }
 
-.jcmv-header--light .wp-block-navigation__responsive-container.is-menu-open .wp-block-navigation-item a {
+.jcmv-header--light .wp-block-navigation__responsive-container.is-menu-open .wp-block-navigation-item__content {
 	border-bottom-color: var(--wp--preset--color--accent-6);
 }
 
-.jcmv-header--light .wp-block-navigation__responsive-container.is-menu-open .current-menu-item > a,
+.jcmv-header--light .wp-block-navigation__responsive-container.is-menu-open .current-menu-item > .wp-block-navigation-item__content,
 .jcmv-header--light .wp-block-navigation__responsive-container.is-menu-open [aria-current="page"] {
 	color: var(--wp--preset--color--accent-1);
 }

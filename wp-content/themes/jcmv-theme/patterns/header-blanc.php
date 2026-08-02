@@ -27,7 +27,21 @@
 		<!-- wp:group {"layout":{"type":"flex","flexWrap":"wrap","verticalAlignment":"center"},"style":{"spacing":{"blockGap":"var:preset|spacing|60"}}} -->
 		<div class="wp-block-group">
 
-			<!-- wp:navigation {"overlayMenu":"mobile","overlayBackgroundColor":"base","overlayTextColor":"contrast","fontFamily":"display","fontSize":"small","style":{"typography":{"textTransform":"uppercase","letterSpacing":"0.04em"},"spacing":{"blockGap":"var:preset|spacing|50"}},"layout":{"type":"flex","justifyContent":"right"}} /-->
+			<?php
+			/*
+			 * `openSubmenusOnClick` : le parent d'un sous-menu (« Le club ») est
+			 * alors rendu par le cœur comme un `<button aria-expanded>` sans
+			 * `href`, au lieu d'un lien. Deux bénéfices : il cesse de dupliquer la
+			 * destination de son enfant « À propos », et le sous-menu devient
+			 * atteignable au clavier comme au tactile — un parent à la fois lien
+			 * et déclencheur de survol est un piège classique sur mobile, où le
+			 * premier appui suit le lien sans jamais ouvrir le sous-menu.
+			 *
+			 * Corollaire : les règles de navigation de components.css doivent
+			 * viser `.wp-block-navigation-item__content` et non `a`.
+			 */
+			?>
+			<!-- wp:navigation {"openSubmenusOnClick":true,"overlayMenu":"mobile","overlayBackgroundColor":"base","overlayTextColor":"contrast","fontFamily":"display","fontSize":"small","style":{"typography":{"textTransform":"uppercase","letterSpacing":"0.04em"},"spacing":{"blockGap":"var:preset|spacing|50"}},"layout":{"type":"flex","justifyContent":"right"}} /-->
 
 			<!-- wp:buttons -->
 			<div class="wp-block-buttons">

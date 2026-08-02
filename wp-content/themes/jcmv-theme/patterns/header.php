@@ -25,7 +25,8 @@
 		<!-- wp:group {"layout":{"type":"flex","flexWrap":"wrap","verticalAlignment":"center"},"style":{"spacing":{"blockGap":"var:preset|spacing|60"}}} -->
 		<div class="wp-block-group">
 
-			<!-- wp:navigation {"overlayMenu":"mobile","overlayBackgroundColor":"accent-4","overlayTextColor":"base","fontFamily":"display","fontSize":"small","style":{"typography":{"textTransform":"uppercase","letterSpacing":"0.04em"},"spacing":{"blockGap":"var:preset|spacing|50"}},"layout":{"type":"flex","justifyContent":"right"}} /-->
+			<?php // `openSubmenusOnClick` : voir l'explication dans header-blanc.php, qui est la variante réellement en service. ?>
+			<!-- wp:navigation {"openSubmenusOnClick":true,"overlayMenu":"mobile","overlayBackgroundColor":"accent-4","overlayTextColor":"base","fontFamily":"display","fontSize":"small","style":{"typography":{"textTransform":"uppercase","letterSpacing":"0.04em"},"spacing":{"blockGap":"var:preset|spacing|50"}},"layout":{"type":"flex","justifyContent":"right"}} /-->
 
 			<!-- wp:buttons -->
 			<div class="wp-block-buttons">

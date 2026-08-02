@@ -54,7 +54,7 @@
 			<!-- wp:group {"className":"jcmv-footer__coords","layout":{"type":"constrained"},"style":{"spacing":{"blockGap":"var:preset|spacing|30"}}} -->
 			<div class="wp-block-group jcmv-footer__coords">
 				<!-- wp:paragraph {"className":"jcmv-footer__title"} -->
-				<p class="jcmv-footer__title">Judo Club des Martres-de-Veyre</p>
+				<p class="jcmv-footer__title">Judo Club Les Martres-de-Veyre</p>
 				<!-- /wp:paragraph -->
 				<!-- wp:html -->
 				<address class="jcmv-footer__contact">
@@ -132,7 +132,7 @@
 	<div class="wp-block-group jcmv-footer__bottom-inner">
 
 		<!-- wp:paragraph {"fontSize":"small","className":"jcmv-footer__copyright"} -->
-		<p class="jcmv-footer__copyright has-small-font-size">© <?php echo esc_html( wp_date( 'Y' ) ); ?> Judo Club des Martres-de-Veyre — Club affilié FFJDA</p>
+		<p class="jcmv-footer__copyright has-small-font-size">© <?php echo esc_html( wp_date( 'Y' ) ); ?> Judo Club Les Martres-de-Veyre — Club affilié FFJDA</p>
 		<!-- /wp:paragraph -->
 
 		<!-- wp:html -->
