@@ -181,6 +181,6 @@ Le sous-domaine `wp.` redevient opérationnel, aucun fichier n'ayant été dépl
 
 ## Journal
 
-| Date | Étape | Résultat |
-| --- | --- | --- |
-| | | |
+| Date       | Étape  | Résultat           |
+|------------|--------|--------------------|
+| 01/08/2026 | TOUTES | SITE EN PRODUCTION |
