@@ -64,3 +64,10 @@ docker compose run --rm wpcli language core install fr_FR --activate
 - Image PHP 8.3 pour coller aux hébergements mutualisés OVH récents (version recommandée par WordPress 7.0).
 - MariaDB 10.11, compatible avec les BDD OVH.
 - Pour migrer : export BDD (phpMyAdmin ou `wpcli db export`), copie de `wp-content/`, puis recherche/remplacement des URLs (`wpcli search-replace http://localhost:8080 https://votre-domaine.fr`).
+
+
+## Outillage
+
+- [squoosh](https://squoosh.app/) : outil en ligne pour optimiser les images
+- [Google Lighthouse / PageSpeed Insights](https://pagespeed.web.dev/) : analyse de la performance
+- 

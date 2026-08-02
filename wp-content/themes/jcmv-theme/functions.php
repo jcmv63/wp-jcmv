@@ -81,8 +81,20 @@ add_action(
 /**
  * Mises à jour du thème depuis le manifeste GitHub (branche `updates` du
  * monorepo, publié par le workflow release-theme).
+ *
+ * Deux durées de cache, et c'est le point important. La version initiale
+ * mémorisait l'échec aussi longtemps que le succès : un 404 — le cas normal
+ * tant que la branche `updates` ne contenait pas encore `theme.json` — était
+ * gravé pour six heures, et aucune release publiée entre-temps n'était vue.
+ * Constaté en production le 2026-08-02 : deux releases invisibles.
+ *
+ * Un échec est par nature transitoire (réseau, GitHub indisponible, manifeste
+ * pas encore publié), il ne se met donc en cache que brièvement. Un succès est
+ * stable et supporte une durée longue.
  */
 define( 'JCMV_THEME_UPDATE_MANIFEST', 'https://raw.githubusercontent.com/jcmv63/wp-jcmv/updates/theme.json' );
+define( 'JCMV_THEME_UPDATE_TTL_OK', 6 * HOUR_IN_SECONDS );
+define( 'JCMV_THEME_UPDATE_TTL_KO', 15 * MINUTE_IN_SECONDS );
 
 add_filter(
 	'pre_set_site_transient_update_themes',
@@ -92,16 +104,27 @@ add_filter(
 		}
 
 		$manifest = get_transient( 'jcmv_theme_update_manifest' );
+
 		if ( ! is_array( $manifest ) ) {
 			$manifest = array();
 			$response = wp_remote_get( JCMV_THEME_UPDATE_MANIFEST, array( 'timeout' => 10 ) );
+
 			if ( ! is_wp_error( $response ) && 200 === wp_remote_retrieve_response_code( $response ) ) {
 				$decoded = json_decode( wp_remote_retrieve_body( $response ), true );
 				if ( is_array( $decoded ) ) {
 					$manifest = $decoded;
 				}
 			}
-			set_transient( 'jcmv_theme_update_manifest', $manifest, 6 * HOUR_IN_SECONDS );
+
+			// Un manifeste sans `version` n'est pas exploitable : on le traite
+			// comme un échec, quel que soit le code HTTP reçu.
+			$reussite = ! empty( $manifest['version'] );
+
+			set_transient(
+				'jcmv_theme_update_manifest',
+				$manifest,
+				$reussite ? JCMV_THEME_UPDATE_TTL_OK : JCMV_THEME_UPDATE_TTL_KO
+			);
 		}
 
 		$current = wp_get_theme( 'jcmv-theme' )->get( 'Version' );
