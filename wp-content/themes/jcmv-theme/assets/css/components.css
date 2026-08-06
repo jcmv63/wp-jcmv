@@ -725,3 +725,55 @@ b {
 	background: var(--wp--preset--color--accent-3);
 	color: var(--wp--preset--color--accent-2);
 }
+
+/* ---------- The Events Calendar (reprise à la charte) ---------- */
+
+/*
+ * On ne surcharge NI les sélecteurs du plugin NI ses gabarits, mais ses
+ * variables CSS — 156 propriétés personnalisées posées sur `:root` par
+ * `common/build/css/variables-{skeleton,full}.css`. C'est une surface d'API
+ * publique : elle survit aux mises à jour, là où un sélecteur
+ * `.tribe-events-calendar-list__event-title` est du détail d'implémentation
+ * et une copie de gabarit un instantané qui vieillit. Vérifié sur TEC 6.17.1.
+ *
+ * Beaucoup de variables de TEC dérivent les unes des autres — par exemple
+ * `--tec-color-button-primary` vaut `var(--tec-color-accent-primary)`, et
+ * `--tec-color-link-accent` aussi. Redéfinir une poignée de variables en
+ * amont reteinte donc boutons, liens, icônes et états actifs d'un coup.
+ *
+ * `:root:root` porte la spécificité à 0,0,2 contre 0,0,1 pour la déclaration
+ * du plugin. Sans ce doublement, le résultat dépendrait de l'ordre de
+ * chargement des feuilles, qui n'est garanti nulle part.
+ *
+ * Enfin, TEC écrit ses variantes de survol en dur (`#334affcc`) plutôt qu'en
+ * dérivant de la couleur de base. Ne redéfinir que la variable de base
+ * laisserait donc du bleu au survol : d'où les `color-mix()` ci-dessous, qui
+ * reconstituent les mêmes opacités à partir du rouge de la charte.
+ */
+:root:root {
+	/* Accent principal — boutons, liens, icônes actives */
+	--tec-color-accent-primary: var(--wp--preset--color--accent-1);
+	--tec-color-accent-primary-hover: color-mix(in srgb, var(--wp--preset--color--accent-1) 80%, transparent);
+	--tec-color-accent-primary-active: color-mix(in srgb, var(--wp--preset--color--accent-1) 90%, transparent);
+	--tec-color-accent-primary-background: color-mix(in srgb, var(--wp--preset--color--accent-1) 7%, transparent);
+	--tec-color-link-accent-hover: color-mix(in srgb, var(--wp--preset--color--accent-1) 80%, transparent);
+
+	/* Accent secondaire — boutons sombres, sélecteur de vue */
+	--tec-color-accent-secondary: var(--wp--preset--color--contrast);
+	--tec-color-accent-secondary-hover: color-mix(in srgb, var(--wp--preset--color--contrast) 80%, transparent);
+	--tec-color-accent-secondary-active: color-mix(in srgb, var(--wp--preset--color--contrast) 90%, transparent);
+	--tec-color-accent-secondary-background: color-mix(in srgb, var(--wp--preset--color--contrast) 7%, transparent);
+
+	/* Textes — `text-events-title` et `link-primary` en dérivent */
+	--tec-color-text-primary: var(--wp--preset--color--contrast);
+	--tec-color-text-primary-light: var(--wp--preset--color--anthracite-clair);
+	--tec-color-text-secondary: var(--wp--preset--color--gris-texte);
+
+	/* Bordures et fonds */
+	--tec-color-border-default: var(--wp--preset--color--accent-6);
+	--tec-color-border-secondary: var(--wp--preset--color--accent-6);
+	--tec-color-background-secondary: var(--wp--preset--color--accent-5);
+
+	/* Typographie — Archivo, comme le corps de texte du site */
+	--tec-font-family-sans-serif: var(--wp--preset--font-family--corps);
+}

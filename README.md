@@ -47,7 +47,7 @@ Installation initiale scriptée (au lieu de l'assistant web). **Important : lanc
 ```bash
 docker compose run --rm wpcli core install \
   --url=http://localhost:8080 \
-  --title="Judo Club des Martres-de-Veyre" \
+  --title="Judo Club les Martres-de-Veyre" \
   --admin_user=admin \
   --admin_password=admin_local \
   --admin_email=equaproduction@gmail.com \
@@ -59,15 +59,25 @@ docker compose run --rm wpcli language core install fr_FR --activate
 
 `WP_DEBUG` est actif ; les erreurs sont écrites dans `wp-content/debug.log` (non affichées à l'écran).
 
-## Notes pour la migration OVH
+## Notes 
 
-- Image PHP 8.3 pour coller aux hébergements mutualisés OVH récents (version recommandée par WordPress 7.0).
-- MariaDB 10.11, compatible avec les BDD OVH.
-- Pour migrer : export BDD (phpMyAdmin ou `wpcli db export`), copie de `wp-content/`, puis recherche/remplacement des URLs (`wpcli search-replace http://localhost:8080 https://votre-domaine.fr`).
+### Forcer l'apparition d'une mise à jour
 
+Exécuter les requêtes dans l'ordre indiqué
+
+#### Plugin
+```
+DELETE FROM wp_options WHERE option_name LIKE '%jcmv_plugin_update_manifest%';
+DELETE FROM wp_options WHERE option_name = '_site_transient_update_plugins';
+```
+
+#### Thème
+```
+DELETE FROM wp_options WHERE option_name LIKE '%jcmv_theme_update_manifest%';
+DELETE FROM wp_options WHERE option_name = '_site_transient_update_themes';
+```
 
 ## Outillage
 
 - [squoosh](https://squoosh.app/) : outil en ligne pour optimiser les images
 - [Google Lighthouse / PageSpeed Insights](https://pagespeed.web.dev/) : analyse de la performance
-- 
