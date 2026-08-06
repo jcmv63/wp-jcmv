@@ -11,8 +11,14 @@
 	</div>
 	<!-- /wp:group -->
 
-	<!-- wp:group {"align":"full","style":{"spacing":{"padding":{"top":"var:preset|spacing|60"}}},"layout":{"type":"default"}} -->
-	<div class="wp-block-group alignfull" style="padding-top:var(--wp--preset--spacing--60)">
+	<!--
+		Aucun padding ici : l'espace au-dessus du calendrier est porté par le
+		`.tribe-events-l-container` de TEC, retaillé dans components.css. Deux
+		sources d'espacement pour une même respiration finissent toujours par
+		diverger.
+	-->
+	<!-- wp:group {"align":"full","layout":{"type":"default"}} -->
+	<div class="wp-block-group alignfull">
 		<!-- wp:tec/archive-events /-->
 	</div>
 	<!-- /wp:group -->
@@ -23,8 +29,8 @@
 		conteneur de `tec/archive-events` — le bloc y disparaîtrait au premier
 		changement de mois.
 	-->
-	<!-- wp:group {"style":{"spacing":{"margin":{"top":"var:preset|spacing|70","bottom":"var:preset|spacing|70"}}},"layout":{"type":"constrained"}} -->
-	<div class="wp-block-group" style="margin-top:var(--wp--preset--spacing--70);margin-bottom:var(--wp--preset--spacing--70)">
+	<!-- wp:group {"style":{"spacing":{"margin":{"top":"0","bottom":"var:preset|spacing|70"}}},"layout":{"type":"constrained"}} -->
+	<div class="wp-block-group" style="margin-top:0;margin-bottom:var(--wp--preset--spacing--70)">
 		<!-- wp:jcmv/abonnement-calendrier {"titre":"S'abonner au calendrier"} /-->
 	</div>
 	<!-- /wp:group -->

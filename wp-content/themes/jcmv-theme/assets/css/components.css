@@ -776,4 +776,51 @@ b {
 
 	/* Typographie — Archivo, comme le corps de texte du site */
 	--tec-font-family-sans-serif: var(--wp--preset--font-family--corps);
+
+	/*
+	 * Largeur de la grille — alignement du calendrier sur le reste du site.
+	 *
+	 * `.tribe-common-l-container` porte `max-width: var(--tec-grid-width)`, que
+	 * TEC dérive en `calc(--tec-grid-width-default + --tec-grid-gutter-page * 2)`,
+	 * soit 1176 + 42 × 2 = 1260 px de boîte pour 1176 px de contenu utile. Face
+	 * aux 1080 px du `content-size` du thème, le calendrier débordait de 48 px
+	 * de chaque côté.
+	 *
+	 * On ne redéfinit que la largeur de base : les gouttières de 42 px sont
+	 * conservées, et le contenu du calendrier s'aligne alors exactement sur
+	 * celui des blocs contraints. Redéfinir `--tec-grid-width` directement
+	 * ferait perdre les gouttières.
+	 */
+	--tec-grid-width-default: var(--wp--style--global--content-size);
+}
+
+/*
+ * Respiration verticale du calendrier.
+ *
+ * Exception assumée à la règle « variables, pas sélecteurs » énoncée plus
+ * haut : `.tribe-events-l-container` reçoit
+ * `padding-top: var(--tec-spacer-13)` (96 px) et
+ * `padding-bottom: var(--tec-spacer-14)` (160 px) au-delà du breakpoint
+ * medium (`build/css/views-skeleton.css`). Ces spacers appartiennent à une
+ * échelle générique réutilisée dans tout le plugin : les redéfinir sur
+ * `:root` déréglerait des composants sans rapport. On cible donc le seul
+ * conteneur de vue, dont le préfixe `-l-` désigne chez TEC une primitive de
+ * mise en page — nettement plus stable qu'une classe de composant.
+ *
+ * `min-height` est laissé tel quel volontairement : TEC s'en sert pour
+ * réserver la hauteur pendant le chargement AJAX d'un changement de mois.
+ * Le supprimer ferait sauter la page à chaque navigation.
+ *
+ * Attention à la spécificité : TEC pose DEUX règles sur ce conteneur, l'une
+ * de base en 0,2,0 et l'autre en 0,3,0 pour le grand écran —
+ * `.tribe-common--breakpoint-medium.tribe-events .tribe-events-l-container`.
+ * `tribe-common--breakpoint-medium` est une classe posée en JavaScript selon
+ * la largeur du conteneur, pas une media query : impossible de la contourner
+ * par un @media. Chaque sélecteur ci-dessous monte donc d'un cran au-dessus de
+ * son homologue, faute de quoi seul le rendu mobile serait corrigé.
+ */
+.tribe-events.tribe-events .tribe-events-l-container,
+.tribe-common--breakpoint-medium.tribe-events.tribe-events .tribe-events-l-container {
+	padding-top: var(--wp--preset--spacing--50);
+	padding-bottom: var(--wp--preset--spacing--60);
 }

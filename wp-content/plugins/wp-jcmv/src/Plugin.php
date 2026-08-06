@@ -14,9 +14,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 final class Plugin {
 
 	/**
-	 * Câble les différents modules du plugin (hook plugins_loaded).
-	 */
-	/**
 	 * Version dont les règles de réécriture sont en place. À incrémenter dès
 	 * qu'une règle change (ADR-004).
 	 */
@@ -24,6 +21,9 @@ final class Plugin {
 
 	private const REWRITE_OPTION = 'jcmv_rewrite_version';
 
+	/**
+	 * Câble les différents modules du plugin (hook plugins_loaded).
+	 */
 	public static function boot(): void {
 		// Rejoue les migrations si le plugin a été mis à jour sans réactivation
 		// (mise à jour par zip ou par Plugin Update Checker).

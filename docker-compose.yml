@@ -38,6 +38,13 @@ services:
         define('SCRIPT_DEBUG', true);
         define('WP_ENVIRONMENT_TYPE', 'local');
         define('WP_DEVELOPMENT_MODE', 'all');
+        // The Events Calendar met en cache le HTML de la vue Mois dans un
+        // transient de 24 h (Views/V2/Views/Traits/HTML_Cache.php). En
+        // développement, aucune modification PHP touchant au rendu du
+        // calendrier n'est alors visible : ni un redémarrage du conteneur ni un
+        // rechargement forcé n'y changent rien, le cache vivant en base.
+        // Ne jamais définir cette constante en production.
+        define('TRIBE_CACHE_VIEWS', false);
     volumes:
       - wp_core:/var/www/html
       - ./wp-content:/var/www/html/wp-content

@@ -147,6 +147,17 @@ plugin (lisibilité) ; les deux résolvent vers les mêmes valeurs.
 - `WP_DEVELOPMENT_MODE=all` est défini dans le docker-compose : sans lui, WordPress
   met en cache la liste des fichiers `patterns/` et le theme.json (symptôme : un
   nouveau pattern « n'existe pas »). Ne jamais l'activer en production.
+- `TRIBE_CACHE_VIEWS=false` est défini dans le docker-compose. The Events Calendar
+  met en cache le HTML complet de la **vue Mois** dans un transient de 24 h
+  (`src/Tribe/Views/V2/Views/Traits/HTML_Cache.php` ; c'est la seule vue concernée
+  par défaut). Sans cette constante, aucune modification PHP touchant au rendu du
+  calendrier n'est visible : le cache vit en base, donc ni `docker compose restart`
+  ni un rechargement forcé ne le vident — seuls l'expiration, l'enregistrement d'un
+  événement (`TRIGGER_SAVE_POST`) ou `wp transient delete --all` y parviennent.
+  Symptôme typique : les changements CSS s'appliquent, les changements PHP non.
+  **Corollaire en production, où le cache reste actif** : après une mise à jour du
+  plugin qui modifie le rendu du calendrier, prévoir jusqu'à 24 h de latence, ou
+  forcer la purge en enregistrant un événement.
 - wp-cli tourne dans un conteneur séparé : il ne peut pas régénérer le `.htaccess`
   (voir `scripts/setup-structure.sh` qui l'écrit via le conteneur Apache).
 - Structure du site (pages, menu, réglages de lecture) : `./scripts/setup-structure.sh`
@@ -156,6 +167,7 @@ plugin (lisibilité) ; les deux résolvent vers les mêmes valeurs.
 
 - [ ] Aucune requête vers `fonts.googleapis.com` / `fonts.gstatic.com`
 - [ ] `WP_DEVELOPMENT_MODE` absent / vide en production
+- [ ] `TRIBE_CACHE_VIEWS` absent en production (le cache de la vue Mois doit y rester actif)
 - [ ] Contrastes vérifiés après tout ajout de couleur (règles charte §03)
 - [ ] Pages légales publiées + consentement cookies branché sur « Gérer mes cookies »
 - [ ] Icône de site **non** définie dans les réglages WP (sinon elle prime sur le set

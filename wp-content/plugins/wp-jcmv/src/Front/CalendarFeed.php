@@ -64,6 +64,59 @@ final class CalendarFeed {
 		// branché sur le même hook en priorité par défaut et se déclenche dès
 		// qu'un `?ical` traîne dans la requête.
 		add_action( 'template_redirect', array( self::class, 'maybe_render' ), 5 );
+		// Deux crochets pour une seule intention, faute de pouvoir déboguer le
+		// rendu de TEC d'ici : `tribe_template_done` coupe le plus tôt possible
+		// (`Template.php:809`), `tribe_template_pre_html` sert de filet
+		// (`Template.php:891`). Le second identifie le gabarit par son chemin
+		// de fichier, insensible à la façon dont TEC normalise les noms.
+		add_filter( 'tribe_template_done', array( self::class, 'skip_tec_ical_template' ), 10, 2 );
+		add_filter( 'tribe_template_pre_html', array( self::class, 'hide_tec_dropdown' ), 10, 2 );
+	}
+
+	/**
+	 * Le gabarit visé : la liste déroulante « S'abonner au calendrier » incluse
+	 * par `views/v2/{month,list,day}.php`.
+	 */
+	private const TEC_ICAL_TEMPLATE = 'components/ical-link';
+
+	/**
+	 * Coupe le rendu du gabarit avant même sa résolution.
+	 *
+	 * @param mixed                $done Non-`null` pour annuler le rendu.
+	 * @param array<string>|string $name Nom du gabarit, tel que passé à `template()`.
+	 *
+	 * @return mixed
+	 */
+	public static function skip_tec_ical_template( $done, $name ) {
+		$slug = is_array( $name ) ? implode( '/', $name ) : (string) $name;
+
+		return self::TEC_ICAL_TEMPLATE === $slug ? true : $done;
+	}
+
+	/**
+	 * Retire la liste déroulante « S'abonner au calendrier » de TEC des vues
+	 * calendrier, où le bloc `jcmv/abonnement-calendrier` la remplace — lui
+	 * sait filtrer par catégorie d'âge, elle non. Deux dispositifs
+	 * d'abonnement sur la même page ne feraient qu'égarer les familles.
+	 *
+	 * On identifie le gabarit par son chemin absolu, seule donnée qui ne
+	 * dépende pas de la construction des espaces de noms de TEC. La fiche d'un
+	 * événement passe par `blocks/event-links`, un fichier distinct : ses
+	 * boutons « Ajouter au calendrier » sont préservés, comme le veut l'ADR-004.
+	 *
+	 * Le filtre global `tec_views_v2_use_subscribe_links` avait été écarté :
+	 * il fait sortir `register()` avant la pose des crochets et emporterait
+	 * aussi ceux de la fiche événement.
+	 *
+	 * @param string|null $html Court-circuit du rendu, `null` par défaut.
+	 * @param string      $file Chemin complet du gabarit.
+	 *
+	 * @return string|null
+	 */
+	public static function hide_tec_dropdown( $html, $file ) {
+		$cible = 'views/v2/' . self::TEC_ICAL_TEMPLATE . '.php';
+
+		return str_ends_with( (string) $file, $cible ) ? '' : $html;
 	}
 
 	/**
