@@ -24,6 +24,7 @@ final class Blocks {
 		register_block_type( JCMV_PLUGIN_DIR . 'blocks/horaires-tarifs' );
 		register_block_type( JCMV_PLUGIN_DIR . 'blocks/frais-fixes' );
 		register_block_type( JCMV_PLUGIN_DIR . 'blocks/partenaires' );
+		register_block_type( JCMV_PLUGIN_DIR . 'blocks/abonnement-calendrier' );
 	}
 
 	/**

@@ -1,0 +1,225 @@
+/**
+ * Abonnement au calendrier — tokens du thème uniquement, aucune couleur en dur
+ * (guide §8). Le bloc vit sous le calendrier : il doit se lire comme un encart
+ * de service, pas comme un second bandeau qui concurrencerait la liste
+ * d'événements.
+ */
+
+.jcmv-abo {
+	background: var(--wp--custom--color--blanc, #fff);
+	border: 1px solid var(--wp--custom--color--grisBordure, #e3e5ea);
+	border-radius: var(--wp--custom--radius--medium, 14px);
+	box-shadow: var(--wp--preset--shadow--card);
+	padding: var(--wp--preset--spacing--60, 32px);
+}
+
+.jcmv-abo__titre {
+	margin: 0 0 var(--wp--preset--spacing--30, 12px);
+	font-family: var(--wp--preset--font-family--display);
+	font-size: var(--wp--preset--font-size--large);
+}
+
+.jcmv-abo__intro {
+	margin: 0 0 var(--wp--preset--spacing--50, 24px);
+	color: var(--wp--preset--color--gris-texte, #6b7280);
+}
+
+/* Le fieldset n'apporte que la sémantique : son cadre natif jurerait avec la
+   carte, on le neutralise sans toucher à la structure. */
+.jcmv-abo__groupe {
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+
+.jcmv-abo__legende {
+	padding: 0;
+	margin-bottom: var(--wp--preset--spacing--30, 12px);
+	font-family: var(--wp--preset--font-family--display);
+	font-size: var(--wp--preset--font-size--small);
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+
+.jcmv-abo__liste {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--wp--preset--spacing--30, 12px) var(--wp--preset--spacing--50, 24px);
+}
+
+/*
+ * La cible tactile est le libellé entier, pas la seule case : sur mobile,
+ * viser un carré de 13 px est le premier motif d'abandon.
+ */
+.jcmv-abo__case {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	cursor: pointer;
+	padding: 4px 0;
+	min-height: 32px;
+}
+
+.jcmv-abo__case input {
+	width: 18px;
+	height: 18px;
+	accent-color: var(--wp--custom--color--rouge, #ee3435);
+	flex: none;
+}
+
+.jcmv-abo__case input:focus-visible {
+	outline: 2px solid var(--wp--custom--color--rouge, #ee3435);
+	outline-offset: 2px;
+}
+
+.jcmv-abo__actions-groupe {
+	display: flex;
+	gap: var(--wp--preset--spacing--30, 12px);
+	margin: var(--wp--preset--spacing--30, 12px) 0 0;
+}
+
+/* Commandes secondaires : lisibles, mais elles ne doivent pas rivaliser avec
+   le bouton d'abonnement. */
+.jcmv-abo__tout,
+.jcmv-abo__rien,
+.jcmv-abo__copier {
+	background: none;
+	border: 0;
+	padding: 4px 0;
+	font-size: var(--wp--preset--font-size--small);
+	color: var(--wp--preset--color--gris-texte, #6b7280);
+	text-decoration: underline;
+	cursor: pointer;
+}
+
+.jcmv-abo__tout:hover,
+.jcmv-abo__rien:hover,
+.jcmv-abo__copier:hover {
+	color: var(--wp--custom--color--rouge, #ee3435);
+}
+
+.jcmv-abo__tout:focus-visible,
+.jcmv-abo__rien:focus-visible,
+.jcmv-abo__copier:focus-visible {
+	outline: 2px solid var(--wp--custom--color--rouge, #ee3435);
+	outline-offset: 2px;
+}
+
+.jcmv-abo__vide {
+	margin: var(--wp--preset--spacing--30, 12px) 0 0;
+	font-size: var(--wp--preset--font-size--small);
+	color: var(--wp--custom--color--rouge, #ee3435);
+}
+
+.jcmv-abo__cta {
+	margin: var(--wp--preset--spacing--50, 24px) 0 0;
+}
+
+.jcmv-abo__bouton {
+	display: inline-block;
+	background: var(--wp--custom--color--rouge, #ee3435);
+	color: var(--wp--custom--color--blanc, #fff);
+	font-family: var(--wp--preset--font-family--display);
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	text-decoration: none;
+	padding: 12px 28px;
+	border-radius: var(--wp--custom--radius--small, 6px);
+}
+
+.jcmv-abo__bouton:hover {
+	filter: brightness(0.92);
+}
+
+.jcmv-abo__bouton:focus-visible {
+	outline: 2px solid var(--wp--custom--color--anthracite, #323642);
+	outline-offset: 2px;
+}
+
+/*
+ * Aucune case cochée : le bouton reste en place mais se signale comme inopérant.
+ * `aria-disabled` plutôt que `disabled` — un lien désactivé doit rester
+ * atteignable au clavier pour que son état soit annonçable.
+ */
+.jcmv-abo__bouton.is-disabled {
+	opacity: 0.45;
+	cursor: not-allowed;
+}
+
+.jcmv-abo__url {
+	margin-top: var(--wp--preset--spacing--50, 24px);
+}
+
+.jcmv-abo__url-label {
+	display: block;
+	margin-bottom: 6px;
+	font-size: var(--wp--preset--font-size--small);
+	color: var(--wp--preset--color--gris-texte, #6b7280);
+}
+
+.jcmv-abo__url-ligne {
+	display: flex;
+	align-items: center;
+	gap: var(--wp--preset--spacing--30, 12px);
+}
+
+.jcmv-abo__url-champ {
+	flex: 1;
+	min-width: 0;
+	font-size: var(--wp--preset--font-size--small);
+	padding: 8px 10px;
+	border: 1px solid var(--wp--custom--color--grisBordure, #e3e5ea);
+	border-radius: var(--wp--custom--radius--small, 6px);
+	background: var(--wp--custom--color--grisFond, #F5F6F8);
+	color: inherit;
+}
+
+.jcmv-abo__url-champ:focus-visible {
+	outline: 2px solid var(--wp--custom--color--rouge, #ee3435);
+	outline-offset: 1px;
+}
+
+.jcmv-abo__reserve {
+	margin: var(--wp--preset--spacing--50, 24px) 0 0;
+	font-size: var(--wp--preset--font-size--small);
+	color: var(--wp--preset--color--gris-texte, #6b7280);
+}
+
+/* Masquage visuel accessible — même définition que dans le bloc Partenaires,
+   dupliquée à dessein : les styles de blocs sont chargés à la demande. */
+.jcmv-sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+	border: 0;
+}
+
+@media (max-width: 781px) {
+	.jcmv-abo {
+		padding: var(--wp--preset--spacing--50, 24px);
+	}
+
+	/* Une colonne : à deux, les libellés longs (« Sénior / Vétéran ») se
+	   coupent et la colonne de droite devient illisible. */
+	.jcmv-abo__liste {
+		flex-direction: column;
+		gap: 0;
+	}
+
+	.jcmv-abo__bouton {
+		display: block;
+		text-align: center;
+	}
+
+	.jcmv-abo__url-ligne {
+		flex-wrap: wrap;
+	}
+}

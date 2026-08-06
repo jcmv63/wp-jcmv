@@ -1,0 +1,27 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "jcmv/abonnement-calendrier",
+	"title": "Abonnement au calendrier",
+	"category": "jcmv",
+	"icon": "rss",
+	"description": "Cases à cocher par catégorie d'âge qui composent un lien d'abonnement ICS : bouton webcal:// pour iPhone et Outlook, URL https copiable pour Google Agenda (ADR-004).",
+	"textdomain": "wp-jcmv",
+	"attributes": {
+		"titre": {
+			"type": "string",
+			"default": "S'abonner au calendrier"
+		}
+	},
+	"editorScript": "file:./index.js",
+	"viewScript": "file:./view.js",
+	"style": "file:./style.css",
+	"render": "file:./render.php",
+	"supports": {
+		"html": false,
+		"multiple": false,
+		"spacing": {
+			"margin": [ "top", "bottom" ]
+		}
+	}
+}

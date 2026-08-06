@@ -1,0 +1,35 @@
+<!-- wp:template-part {"slug":"header"} /-->
+
+<!-- wp:group {"tagName":"main","style":{"spacing":{"margin":{"top":"0"}}},"layout":{"type":"constrained"}} -->
+<main class="wp-block-group" style="margin-top:0">
+
+	<!-- wp:group {"align":"full","className":"jcmv-title-band","backgroundColor":"accent-4","textColor":"base","style":{"spacing":{"padding":{"top":"var:preset|spacing|70","bottom":"var:preset|spacing|70"}}},"layout":{"type":"constrained"}} -->
+	<div class="wp-block-group alignfull jcmv-title-band has-base-color has-accent-4-background-color has-text-color has-background" style="padding-top:var(--wp--preset--spacing--70);padding-bottom:var(--wp--preset--spacing--70)">
+		<!-- wp:heading {"level":1} -->
+		<h1 class="wp-block-heading">Événements</h1>
+		<!-- /wp:heading -->
+	</div>
+	<!-- /wp:group -->
+
+	<!-- wp:group {"align":"full","style":{"spacing":{"padding":{"top":"var:preset|spacing|60"}}},"layout":{"type":"default"}} -->
+	<div class="wp-block-group alignfull" style="padding-top:var(--wp--preset--spacing--60)">
+		<!-- wp:tec/archive-events /-->
+	</div>
+	<!-- /wp:group -->
+
+	<!--
+		Abonnement ICS (ADR-004). Impérativement hors du groupe ci-dessus :
+		la navigation entre mois de Views V2 se fait en AJAX et remplace le
+		conteneur de `tec/archive-events` — le bloc y disparaîtrait au premier
+		changement de mois.
+	-->
+	<!-- wp:group {"style":{"spacing":{"margin":{"top":"var:preset|spacing|70","bottom":"var:preset|spacing|70"}}},"layout":{"type":"constrained"}} -->
+	<div class="wp-block-group" style="margin-top:var(--wp--preset--spacing--70);margin-bottom:var(--wp--preset--spacing--70)">
+		<!-- wp:jcmv/abonnement-calendrier {"titre":"S'abonner au calendrier"} /-->
+	</div>
+	<!-- /wp:group -->
+
+</main>
+<!-- /wp:group -->
+
+<!-- wp:template-part {"slug":"footer"} /-->
