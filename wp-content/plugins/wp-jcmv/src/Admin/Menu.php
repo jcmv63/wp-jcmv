@@ -11,6 +11,8 @@
 namespace JCMV\Admin;
 
 use JCMV\Registration\Capabilities;
+use JCMV\Registration\PostTypes;
+use JCMV\Registration\Taxonomies;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -22,6 +24,7 @@ final class Menu {
 
 	public static function register(): void {
 		add_action( 'admin_menu', array( self::class, 'add_pages' ) );
+		add_filter( 'parent_file', array( self::class, 'highlight_parent' ) );
 	}
 
 	public static function add_pages(): void {
@@ -44,6 +47,54 @@ final class Menu {
 			self::SLUG,
 			array( self::class, 'render_app' )
 		);
+
+		/*
+		 * WordPress n'ajoute les sous-menus de taxonomies que si le CPT a
+		 * show_in_menu === true (wp-admin/menu.php). Nos CPT pointent vers
+		 * 'jcmv-club', donc les écrans Disciplines / Catégories d'âge existent
+		 * mais ne sont liés nulle part : on les rattache à la main.
+		 */
+		foreach ( self::taxonomy_submenus() as $taxonomy => $label ) {
+			$tax_obj = get_taxonomy( $taxonomy );
+			if ( ! $tax_obj ) {
+				continue;
+			}
+
+			add_submenu_page(
+				self::SLUG,
+				$label,
+				$label,
+				$tax_obj->cap->manage_terms,
+				self::taxonomy_url( $taxonomy )
+			);
+		}
+	}
+
+	/** @return array<string,string> slug de taxonomie => libellé du sous-menu. */
+	private static function taxonomy_submenus(): array {
+		return array(
+			Taxonomies::DISCIPLINE    => __( 'Disciplines', 'wp-jcmv' ),
+			Taxonomies::CATEGORIE_AGE => __( 'Catégories d\'âge', 'wp-jcmv' ),
+		);
+	}
+
+	private static function taxonomy_url( string $taxonomy ): string {
+		return 'edit-tags.php?taxonomy=' . $taxonomy . '&post_type=' . PostTypes::COURS;
+	}
+
+	/**
+	 * Garde le menu JCMV ouvert et surligné sur les écrans de taxonomie.
+	 */
+	public static function highlight_parent( string $parent_file ): string {
+		global $current_screen;
+
+		if ( $current_screen instanceof \WP_Screen
+			&& 'edit-tags' === $current_screen->base
+			&& isset( self::taxonomy_submenus()[ $current_screen->taxonomy ] ) ) {
+			return self::SLUG;
+		}
+
+		return $parent_file;
 	}
 
 	public static function render_app(): void {
