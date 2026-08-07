@@ -3,7 +3,11 @@
  * Menu d'administration « JCMV » : point d'entrée unique du module pour le
  * bureau. La page d'accueil du menu monte l'app Saisons (ADR-002, niveau 3) ;
  * si le bundle n'est pas compilé, la marche à suivre est affichée à la place.
- * Les CPT Cours et Lieux s'y rattachent via show_in_menu => 'jcmv-club'.
+ * Les CPT (Cours, Lieux, Partenaires, Produits) s'y rattachent d'eux-mêmes
+ * via show_in_menu => 'jcmv-club'. Les taxonomies, non : WordPress ne les
+ * rattache qu'aux CPT dont show_in_menu vaut true, d'où le rattachement
+ * manuel plus bas — à compléter pour toute nouvelle taxonomie, sans quoi son
+ * écran existe mais reste inatteignable.
  *
  * @package wp-jcmv
  */
@@ -73,13 +77,33 @@ final class Menu {
 	/** @return array<string,string> slug de taxonomie => libellé du sous-menu. */
 	private static function taxonomy_submenus(): array {
 		return array(
-			Taxonomies::DISCIPLINE    => __( 'Disciplines', 'wp-jcmv' ),
-			Taxonomies::CATEGORIE_AGE => __( 'Catégories d\'âge', 'wp-jcmv' ),
+			Taxonomies::DISCIPLINE        => __( 'Disciplines', 'wp-jcmv' ),
+			Taxonomies::CATEGORIE_AGE     => __( 'Catégories d\'âge', 'wp-jcmv' ),
+			Taxonomies::SYSTEME_TAILLE    => __( 'Taille produit', 'wp-jcmv' ),
+			Taxonomies::FAMILLE           => __( 'Famille produit', 'wp-jcmv' ),
 		);
 	}
 
+	/**
+	 * URL de l'écran de termes d'une taxonomie.
+	 *
+	 * Le paramètre post_type conditionne le contexte de l'écran (fil
+	 * d'Ariane, colonne de comptage, retour à la liste). Il est déduit de
+	 * l'enregistrement de la taxonomie plutôt que codé en dur : une taxonomie
+	 * ajoutée demain n'aura pas besoin qu'on pense à compléter une table de
+	 * correspondance ici.
+	 *
+	 * Pour jcmv_categorie_age, object_type[0] vaut bien jcmv_cours : le CPT de
+	 * The Events Calendar n'est ajouté qu'ensuite, par
+	 * register_taxonomy_for_object_type().
+	 */
 	private static function taxonomy_url( string $taxonomy ): string {
-		return 'edit-tags.php?taxonomy=' . $taxonomy . '&post_type=' . PostTypes::COURS;
+		$tax_obj   = get_taxonomy( $taxonomy );
+		$post_type = ( $tax_obj && ! empty( $tax_obj->object_type ) )
+			? (string) $tax_obj->object_type[0]
+			: PostTypes::COURS;
+
+		return 'edit-tags.php?taxonomy=' . $taxonomy . '&post_type=' . $post_type;
 	}
 
 	/**

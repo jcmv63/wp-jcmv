@@ -3,9 +3,11 @@
  * Rendu serveur du bloc « Boutique » (ADR-002 : pas de REST public, sortie
  * cacheable ; ADR-005 pour le modèle).
  *
- * Le catalogue est une vitrine : aucun panier, aucun prix transmis, aucune
- * action d'achat. La seule information transactionnelle affichée est le prix,
- * et il est déclaratif.
+ * Le catalogue est une vitrine : aucun panier, aucune action d'achat, aucun
+ * contrôle de formulaire. Les tailles sont une liste, pas une liste
+ * déroulante — sans prise de commande, un `<select>` ne déclencherait rien,
+ * et son contenu n'est pas indexable. La déroulante viendra avec le
+ * formulaire de commande, alimentée par la même meta.
  *
  * @package wp-jcmv
  *
@@ -17,12 +19,12 @@
 use JCMV\Domain\ProductRepository;
 use JCMV\Registration\ImageSizes;
 
-$jcmv_categorie = isset( $attributes['categorie'] ) ? sanitize_title( (string) $attributes['categorie'] ) : '';
+$jcmv_famille   = isset( $attributes['famille'] ) ? sanitize_title( (string) $attributes['famille'] ) : '';
 $jcmv_limite    = max( 0, (int) ( $attributes['limite'] ?? 0 ) );
 $jcmv_colonnes  = min( 4, max( 2, (int) ( $attributes['colonnes'] ?? 3 ) ) );
 $jcmv_details   = ! isset( $attributes['afficherDetails'] ) || (bool) $attributes['afficherDetails'];
 
-$jcmv_produits = ( new ProductRepository() )->all( $jcmv_categorie, $jcmv_limite );
+$jcmv_produits = ( new ProductRepository() )->all( $jcmv_famille, $jcmv_limite );
 
 if ( ! $jcmv_produits ) {
 	// Message réservé au bureau : un visiteur n'a pas à savoir qu'une grille
@@ -80,8 +82,8 @@ $jcmv_wrapper = get_block_wrapper_attributes(
 		$jcmv_total_photos = count( $jcmv_galerie ) + 1;
 		$jcmv_a_du_detail  = $jcmv_details
 			&& ( '' !== trim( wp_strip_all_tags( $jcmv_produit['description'] ) )
-				|| '' !== $jcmv_produit['coloris']
-				|| $jcmv_produit['grille'] );
+				|| '' !== $jcmv_produit['couleur']
+				|| $jcmv_produit['tailles'] );
 		?>
 		<li class="jcmv-shop__item">
 			<article class="jcmv-shop__card">
@@ -156,9 +158,6 @@ $jcmv_wrapper = get_block_wrapper_attributes(
 
 					<p class="jcmv-shop__price">
 						<?php if ( $jcmv_produit['prix'] > 0 ) : ?>
-							<?php if ( $jcmv_produit['prix_a_partir_de'] ) : ?>
-								<span class="jcmv-shop__price-prefix"><?php esc_html_e( 'à partir de', 'wp-jcmv' ); ?></span>
-							<?php endif; ?>
 							<?php echo esc_html( ProductRepository::format_price( $jcmv_produit['prix'] ) ); ?>
 						<?php else : ?>
 							<span class="jcmv-shop__price-ask"><?php esc_html_e( 'Prix sur demande', 'wp-jcmv' ); ?></span>
@@ -182,50 +181,42 @@ $jcmv_wrapper = get_block_wrapper_attributes(
 								<div class="jcmv-shop__description">
 									<?php
 									/*
-									 * do_blocks() puis wpautop() : la description peut
-									 * avoir été saisie en blocs (produits récents) ou en
-									 * texte brut (import). On ne passe pas par le filtre
-									 * the_content, qui rejouerait tout l'empilement de
-									 * filtres du thème et des extensions dans une boucle.
+									 * La description est saisie en éditeur classique
+									 * (ADR-005) : du HTML simple, que wpautop suffit à
+									 * mettre en paragraphes. On ne passe pas par le
+									 * filtre the_content, qui rejouerait tout
+									 * l'empilement du thème et des extensions dans une
+									 * boucle.
 									 */
-									echo wp_kses_post( wpautop( do_blocks( $jcmv_produit['description'] ) ) );
+									echo wp_kses_post( wpautop( $jcmv_produit['description'] ) );
 									?>
 								</div>
 							<?php endif; ?>
 
-							<?php if ( '' !== $jcmv_produit['coloris'] ) : ?>
-								<p class="jcmv-shop__coloris">
-									<strong><?php esc_html_e( 'Coloris :', 'wp-jcmv' ); ?></strong>
-									<?php echo esc_html( $jcmv_produit['coloris'] ); ?>
+							<?php if ( '' !== $jcmv_produit['couleur'] ) : ?>
+								<p class="jcmv-shop__couleur">
+									<strong><?php esc_html_e( 'Couleur :', 'wp-jcmv' ); ?></strong>
+									<?php echo esc_html( $jcmv_produit['couleur'] ); ?>
 								</p>
 							<?php endif; ?>
 
-							<?php if ( $jcmv_produit['grille'] ) : ?>
-								<table class="jcmv-shop__grid">
-									<caption class="jcmv-sr-only">
-										<?php
-										printf(
-											/* translators: %s : nom du produit. */
-											esc_html__( 'Tarifs par taille de %s', 'wp-jcmv' ),
-											esc_html( $jcmv_produit['nom'] )
-										);
-										?>
-									</caption>
-									<thead>
-										<tr>
-											<th scope="col"><?php esc_html_e( 'Taille', 'wp-jcmv' ); ?></th>
-											<th scope="col"><?php esc_html_e( 'Prix', 'wp-jcmv' ); ?></th>
-										</tr>
-									</thead>
-									<tbody>
-										<?php foreach ( $jcmv_produit['grille'] as $jcmv_ligne ) : ?>
-											<tr>
-												<th scope="row"><?php echo esc_html( $jcmv_ligne['taille'] ); ?></th>
-												<td><?php echo esc_html( ProductRepository::format_price( $jcmv_ligne['prix'] ) ); ?></td>
-											</tr>
-										<?php endforeach; ?>
-									</tbody>
-								</table>
+							<?php if ( $jcmv_produit['tailles'] ) : ?>
+								<?php
+								/*
+								 * Une liste et non une phrase à virgules : chaque
+								 * taille est une entité distincte, et un lecteur
+								 * d'écran annonce alors leur nombre. L'ordre est
+								 * celui de la saisie.
+								 */
+								?>
+								<p class="jcmv-shop__tailles-titre">
+									<strong><?php esc_html_e( 'Tailles disponibles :', 'wp-jcmv' ); ?></strong>
+								</p>
+								<ul class="jcmv-shop__tailles">
+									<?php foreach ( $jcmv_produit['tailles'] as $jcmv_taille ) : ?>
+										<li class="jcmv-shop__taille"><?php echo esc_html( $jcmv_taille ); ?></li>
+									<?php endforeach; ?>
+								</ul>
 							<?php endif; ?>
 						</details>
 					<?php endif; ?>

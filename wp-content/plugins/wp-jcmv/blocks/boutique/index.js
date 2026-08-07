@@ -4,7 +4,7 @@
  * Pas de build : même convention que les autres blocs du plugin, on consomme
  * les globales wp.* directement (voir index.asset.php).
  *
- * Les rayons sont lus par l'API REST plutôt que codés en dur : le bureau peut
+ * Les familles sont lues par l'API REST plutôt que codées en dur : le bureau
  * en créer, et une liste figée ici le lui interdirait de fait.
  */
 ( function ( blocks, element, blockEditor, components, coreData, data ) {
@@ -14,22 +14,22 @@
 		edit: function ( props ) {
 			var attributes = props.attributes;
 
-			var rayons = data.useSelect( function ( select ) {
+			var familles = data.useSelect( function ( select ) {
 				return select( coreData.store ).getEntityRecords(
 					'taxonomy',
-					'jcmv_categorie_produit',
+					'jcmv_famille',
 					{ per_page: -1, hide_empty: false }
 				);
 			}, [] );
 
-			var optionsRayons = [ { label: 'Tous les rayons', value: '' } ].concat(
-				( rayons || [] ).map( function ( rayon ) {
-					return { label: rayon.name, value: rayon.slug };
+			var optionsFamilles = [ { label: 'Toutes les familles', value: '' } ].concat(
+				( familles || [] ).map( function ( famille ) {
+					return { label: famille.name, value: famille.slug };
 				} )
 			);
 
-			var libelleRayon = optionsRayons.filter( function ( option ) {
-				return option.value === attributes.categorie;
+			var libelleFamille = optionsFamilles.filter( function ( option ) {
+				return option.value === attributes.famille;
 			} )[ 0 ];
 
 			var inspector = el(
@@ -39,12 +39,12 @@
 					components.PanelBody,
 					{ title: 'Affichage' },
 					el( components.SelectControl, {
-						label: 'Rayon',
-						value: attributes.categorie,
-						options: optionsRayons,
-						help: 'Limite la grille à un rayon. « Tous les rayons » affiche le catalogue complet.',
+						label: 'Famille',
+						value: attributes.famille,
+						options: optionsFamilles,
+						help: 'Limite la grille à une famille de produits. « Toutes les familles » affiche le catalogue complet.',
 						onChange: function ( value ) {
-							props.setAttributes( { categorie: value } );
+							props.setAttributes( { famille: value } );
 						},
 					} ),
 					el( components.RangeControl, {
@@ -64,7 +64,7 @@
 						max: 24,
 						help:
 							0 === attributes.limite
-								? 'Tous les produits du rayon.'
+								? 'Tous les produits de la famille.'
 								: 'Les ' + attributes.limite + ' premiers, dans l’ordre d’affichage.',
 						onChange: function ( value ) {
 							props.setAttributes( { limite: value } );
@@ -74,7 +74,7 @@
 						label: 'Bloc « Détails » dépliable',
 						checked: attributes.afficherDetails,
 						help: attributes.afficherDetails
-							? 'Chaque produit peut être déplié pour montrer sa description, ses coloris et ses tarifs par taille.'
+							? 'Chaque produit peut être déplié pour montrer sa description, sa couleur et ses tailles disponibles.'
 							: 'Seuls la photo, le nom et le prix sont affichés — utile pour un aperçu en page d’accueil.',
 						onChange: function ( value ) {
 							props.setAttributes( { afficherDetails: value } );
@@ -85,9 +85,9 @@
 
 			var resume =
 				'Boutique — ' +
-				( attributes.categorie
-					? 'rayon « ' + ( libelleRayon ? libelleRayon.label : attributes.categorie ) + ' »'
-					: 'tous les rayons' ) +
+				( attributes.famille
+					? 'famille « ' + ( libelleFamille ? libelleFamille.label : attributes.famille ) + ' »'
+					: 'toutes les familles' ) +
 				', ' +
 				attributes.colonnes +
 				' colonnes' +

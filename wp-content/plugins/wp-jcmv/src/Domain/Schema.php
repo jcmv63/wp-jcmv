@@ -26,6 +26,13 @@ final class Schema {
 	/**
 	 * À incrémenter à chaque évolution du schéma ; comparée à l'option
 	 * pour rejouer dbDelta() au chargement suivant.
+	 *
+	 * La version 2 décrit un schéma identique à la version 1 : elle avait été
+	 * posée pour une table `jcmv_produit_tarif` finalement abandonnée avant
+	 * livraison (ADR-005). Elle n'est pas redescendue à 1 — une version de
+	 * schéma ne recule jamais, sous peine de rejouer les migrations sur les
+	 * installations déjà à jour. Les bases de développement ayant créé la
+	 * table la conservent en orpheline ; à supprimer à la main.
 	 */
 	public const DB_VERSION = '2';
 
@@ -105,32 +112,6 @@ final class Schema {
 				updated_at datetime NULL,
 				PRIMARY KEY  (id),
 				KEY season_course (season_id,course_id)
-			) {$charset};"
-		);
-
-		/*
-		 * Boutique (ADR-005) : grille de prix par taille, facultative produit
-		 * par produit. Sans ligne, le produit affiche son prix unique (postmeta
-		 * jcmv_produit_prix) ; avec des lignes, « à partir de {min} € ».
-		 *
-		 * Une seule dimension, la taille : le coloris ne fait pas varier le
-		 * prix, et s'il le faisait, ce serait un produit distinct. Ajouter une
-		 * colonne `coloris` reste une migration additive si le besoin apparaît.
-		 *
-		 * product_id référence un ID de wp_posts (CPT jcmv_produit) : intégrité
-		 * applicative, comme partout ailleurs dans ce schéma.
-		 */
-		dbDelta(
-			"CREATE TABLE {$prefix}jcmv_produit_tarif (
-				id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-				product_id bigint(20) unsigned NOT NULL,
-				taille varchar(64) NOT NULL,
-				price decimal(8,2) NOT NULL DEFAULT 0.00,
-				sort_order int(11) NOT NULL DEFAULT 0,
-				created_at datetime NULL,
-				updated_at datetime NULL,
-				PRIMARY KEY  (id),
-				KEY product (product_id)
 			) {$charset};"
 		);
 

@@ -44,24 +44,16 @@ final class Seed {
 		'senior'       => array( 'Sénior / Vétéran', 20, 99 ),
 	);
 
-	/**
-	 * Rayons de la boutique (ADR-005). Volontairement peu nombreux : un rayon
-	 * n'a d'intérêt que s'il regroupe plusieurs produits.
+	/*
+	 * Les familles et les systèmes de tailles de la boutique (ADR-005) ne sont
+	 * volontairement PAS seedés. On n'embarque un référentiel que lorsqu'il
+	 * existe en dehors du club — catégories FFJDA, disciplines. Les familles de
+	 * produits sont un choix de présentation du bureau, et les systèmes de
+	 * tailles se lisent sur le catalogue du fournisseur : les deviner ici
+	 * reviendrait à imposer des slugs immuables sur des valeurs inventées.
 	 */
-	private const CATEGORIES_PRODUIT = array(
-		'textile'     => 'Textile',
-		'judogi'      => 'Judogis',
-		'equipement'  => 'Équipement',
-		'accessoires' => 'Accessoires',
-	);
 
 	public static function run(): void {
-		foreach ( self::CATEGORIES_PRODUIT as $slug => $label ) {
-			if ( ! term_exists( $slug, Taxonomies::CATEGORIE_PRODUIT ) ) {
-				wp_insert_term( $label, Taxonomies::CATEGORIE_PRODUIT, array( 'slug' => $slug ) );
-			}
-		}
-
 		foreach ( self::DISCIPLINES as $slug => $label ) {
 			if ( ! term_exists( $slug, Taxonomies::DISCIPLINE ) ) {
 				wp_insert_term( $label, Taxonomies::DISCIPLINE, array( 'slug' => $slug ) );

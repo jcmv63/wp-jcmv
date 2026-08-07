@@ -169,18 +169,6 @@
 	color: var(--wp--preset--color--accent-1, #ee3435);
 }
 
-/*
- * « à partir de » reste discret : c'est une nuance sur le prix, pas une
- * information de même poids que le montant.
- */
-.jcmv-shop__price-prefix {
-	display: block;
-	font-family: var(--wp--preset--font-family--corps, inherit);
-	font-size: var(--wp--preset--font-size--small, 0.875rem);
-	font-weight: 400;
-	color: var(--wp--preset--color--gris-texte, #6b7280);
-}
-
 .jcmv-shop__price-ask {
 	font-size: var(--wp--preset--font-size--medium, 1.125rem);
 	font-weight: 400;
@@ -226,35 +214,66 @@
 	outline-offset: 2px;
 }
 
+/*
+ * Twenty Twenty-Five pose un contour sur TOUT `:focus` — `:where(.wp-site-blocks
+ * *:focus)`, dans son style.css — y compris au clic souris, là où nos règles ne
+ * couvrent que `:focus-visible`. Et comme il déclare `outline-width` et
+ * `outline-style` sans `outline-color`, le contour hérite de `currentColor` :
+ * noir sur le libellé « Détails ».
+ *
+ * On le neutralise uniquement quand le focus n'est PAS clavier. Le contour
+ * rouge de `:focus-visible` reste intact : un utilisateur au clavier voit
+ * toujours où il se trouve (exigence RGAA), un utilisateur à la souris n'a plus
+ * de cadre parasite après un clic.
+ *
+ * `:where()` ayant une spécificité nulle, il suffit de nommer nos classes pour
+ * l'emporter. Et si un navigateur ne connaissait pas `:focus-visible`, le
+ * sélecteur entier serait ignoré — on retomberait sur le contour de TT25,
+ * dégradation acceptable.
+ */
+.jcmv-shop__summary:focus:not(:focus-visible),
+.jcmv-shop__thumb:focus:not(:focus-visible) {
+	outline: none;
+}
+
 .jcmv-shop__description > :first-child {
 	margin-top: var(--wp--preset--spacing--20, 8px);
 }
 
 .jcmv-shop__description > :last-child,
-.jcmv-shop__coloris {
+.jcmv-shop__couleur {
 	margin-bottom: 0;
 }
 
-.jcmv-shop__grid {
-	width: 100%;
-	margin-top: var(--wp--preset--spacing--30, 12px);
-	border-collapse: collapse;
+.jcmv-shop__tailles-titre {
+	margin: var(--wp--preset--spacing--30, 12px) 0 var(--wp--preset--spacing--20, 8px);
 }
 
-.jcmv-shop__grid th,
-.jcmv-shop__grid td {
-	padding: 4px 8px;
-	text-align: left;
-	border-bottom: 1px solid var(--wp--preset--color--accent-6, #e3e5ea);
+/*
+ * Les tailles sont des pastilles et non une phrase à virgules : elles se
+ * balaient du regard, et la liste reste lisible avec une dizaine d'entrées
+ * (« 110 » à « 190 ») dans une carte étroite.
+ *
+ * Aucun style d'interaction — survol, curseur, relief : ce ne sont pas des
+ * contrôles, et rien ne doit laisser croire qu'on peut en choisir un tant
+ * qu'il n'y a pas de prise de commande.
+ */
+.jcmv-shop__tailles {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
 }
 
-.jcmv-shop__grid td {
-	text-align: right;
+.jcmv-shop__taille {
+	margin: 0;
+	padding: 2px 10px;
+	border: 1px solid var(--wp--preset--color--accent-6, #e3e5ea);
+	border-radius: var(--wp--custom--radius--small, 6px);
+	background: var(--wp--preset--color--accent-5, #f5f6f8);
 	white-space: nowrap;
-}
-
-.jcmv-shop__grid tbody th {
-	font-weight: 400;
 }
 
 /* --- Adaptation : on ne change que le nombre de colonnes --- */

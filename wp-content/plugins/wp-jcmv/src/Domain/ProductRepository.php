@@ -2,9 +2,8 @@
 /**
  * Produits de la boutique (CPT jcmv_produit, ADR-005).
  *
- * Donnée native WordPress (ADR-001, niveau « contenu administrable ») :
- * lecture par WP_Query, pas de $wpdb — sauf pour la grille tarifaire, qui
- * vit en table custom et transite par ProductPriceRepository.
+ * Donnée entièrement native WordPress (ADR-001, niveau « contenu
+ * administrable ») : lecture par WP_Query, aucune table custom, aucun $wpdb.
  *
  * Règle métier : un produit sans photo n'est pas affichable dans une grille
  * de produits. Elle est appliquée ici plutôt que dans le gabarit, pour la
@@ -30,16 +29,15 @@ final class ProductRepository {
 	/**
 	 * Produits publiés disposant d'une photo, dans l'ordre d'affichage.
 	 *
-	 * @param string $category Slug de rayon ; vide = tous les rayons.
-	 * @param int    $limit    Nombre maximum ; 0 ou négatif = tous.
+	 * @param string $famille Slug de famille ; vide = toutes les familles.
+	 * @param int    $limit   Nombre maximum ; 0 ou négatif = tous.
 	 * @return array<int, array{
 	 *     id:int, nom:string, description:string, photo_id:int,
-	 *     galerie:array<int,int>, coloris:string, dispo:string,
-	 *     dispo_label:string, grille:array<int, array{taille:string, prix:float}>,
-	 *     prix:float, prix_a_partir_de:bool
+	 *     galerie:array<int,int>, couleur:string, dispo:string,
+	 *     dispo_label:string, tailles:array<int,string>, prix:float
 	 * }>
 	 */
-	public function all( string $category = '', int $limit = 0 ): array {
+	public function all( string $famille = '', int $limit = 0 ): array {
 		$args = array(
 			'post_type'        => PostTypes::PRODUIT,
 			'post_status'      => 'publish',
@@ -49,12 +47,15 @@ final class ProductRepository {
 			'suppress_filters' => false,
 		);
 
-		if ( '' !== $category ) {
+		if ( '' !== $famille ) {
+			// Filtrage par slug et non par ID de terme : l'attribut du bloc est
+			// enregistré dans le contenu de la page, et un ID de terme diffère
+			// d'un environnement à l'autre. Le slug, lui, voyage.
 			$args['tax_query'] = array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- catalogue de quelques dizaines d'entrées.
 				array(
-					'taxonomy' => Taxonomies::CATEGORIE_PRODUIT,
+					'taxonomy' => Taxonomies::FAMILLE,
 					'field'    => 'slug',
-					'terms'    => $category,
+					'terms'    => $famille,
 				),
 			);
 		}
@@ -65,9 +66,6 @@ final class ProductRepository {
 			return array();
 		}
 
-		// Grilles de tous les produits en une requête, avant la boucle.
-		$grids = ( new ProductPriceRepository() )->for_products( wp_list_pluck( $posts, 'ID' ) );
-
 		$products = array();
 
 		foreach ( $posts as $post ) {
@@ -77,26 +75,21 @@ final class ProductRepository {
 				continue;
 			}
 
-			$grid  = $grids[ (int) $post->ID ] ?? array();
 			$dispo = PostTypes::sanitize_dispo( get_post_meta( $post->ID, 'jcmv_produit_dispo', true ) );
 
-			list( $price, $from ) = self::resolve_price(
-				(float) get_post_meta( $post->ID, 'jcmv_produit_prix', true ),
-				$grid
-			);
-
 			$products[] = array(
-				'id'               => (int) $post->ID,
-				'nom'              => get_the_title( $post ),
-				'description'      => (string) $post->post_content,
-				'photo_id'         => $photo_id,
-				'galerie'          => PostTypes::sanitize_gallery( get_post_meta( $post->ID, 'jcmv_produit_galerie', true ) ),
-				'coloris'          => (string) get_post_meta( $post->ID, 'jcmv_produit_coloris', true ),
-				'dispo'            => $dispo,
-				'dispo_label'      => PostTypes::DISPONIBILITES[ $dispo ],
-				'grille'           => $grid,
-				'prix'             => $price,
-				'prix_a_partir_de' => $from,
+				'id'          => (int) $post->ID,
+				'nom'         => get_the_title( $post ),
+				'description' => (string) $post->post_content,
+				'photo_id'    => $photo_id,
+				'galerie'     => PostTypes::sanitize_gallery( get_post_meta( $post->ID, 'jcmv_produit_galerie', true ) ),
+				'couleur'     => (string) get_post_meta( $post->ID, 'jcmv_produit_couleur', true ),
+				'dispo'       => $dispo,
+				'dispo_label' => PostTypes::DISPONIBILITES[ $dispo ],
+				// L'ordre vient de la saisie (système de tailles) : aucun tri ici,
+				// aucun tri n'étant capable de classer « 10 ans, S, M, L ».
+				'tailles'     => PostTypes::sanitize_sizes( get_post_meta( $post->ID, 'jcmv_produit_tailles', true ) ),
+				'prix'        => round( max( 0, (float) get_post_meta( $post->ID, 'jcmv_produit_prix', true ) ), 2 ),
 			);
 
 			if ( $limit > 0 && count( $products ) >= $limit ) {
@@ -105,29 +98,6 @@ final class ProductRepository {
 		}
 
 		return $products;
-	}
-
-	/**
-	 * Prix à afficher pour un produit.
-	 *
-	 * La grille prime sur le prix unique dès qu'elle existe : quand le bureau
-	 * a pris la peine de saisir des tarifs par taille, le champ prix unique
-	 * est au mieux redondant, au pire périmé. On affiche alors le minimum,
-	 * signalé comme « à partir de » — sauf si toutes les tailles sont au même
-	 * tarif, auquel cas « à partir de » serait un mensonge par omission.
-	 *
-	 * @param float                                        $single Prix unique (postmeta).
-	 * @param array<int, array{taille:string, prix:float}> $grid   Grille tarifaire.
-	 * @return array{0:float, 1:bool} Prix affiché, et s'il s'agit d'un « à partir de ».
-	 */
-	public static function resolve_price( float $single, array $grid ): array {
-		if ( ! $grid ) {
-			return array( round( max( 0, $single ), 2 ), false );
-		}
-
-		$prices = array_column( $grid, 'prix' );
-
-		return array( round( min( $prices ), 2 ), min( $prices ) < max( $prices ) );
 	}
 
 	/**

@@ -1,89 +1,133 @@
 /**
- * Metabox produit (ADR-005) : lignes tarifaires répétables et sélection de
- * photos complémentaires.
+ * Metabox produit (ADR-005) : cases de tailles et photos complémentaires.
  *
  * Vanilla, sans build, comme les scripts d'éditeur des blocs du plugin.
  * jQuery n'est en dépendance que pour wp.media, qui l'exige.
  *
- * Aucun index n'est réutilisé après suppression : les noms de champs sont
- * renumérotés à chaque mutation. PHP reçoit donc toujours une suite continue,
- * et l'ordre du DOM devient l'ordre d'affichage sur le site.
+ * Le serveur rend déjà les cases du système courant : ce script ne sert qu'au
+ * changement de système en cours d'édition. Sans lui, la page reste utilisable,
+ * la liste des tailles se met simplement à jour à l'enregistrement suivant.
  */
 ( function () {
 	'use strict';
 
 	var config = window.jcmvProduit || {};
+	var i18n = config.i18n || {};
 
 	document.addEventListener( 'DOMContentLoaded', function () {
-		initTarifs();
+		initTailles();
 		initGalerie();
 	} );
 
-	/* --- Grille tarifaire ------------------------------------------------ */
+	/* --- Tailles ---------------------------------------------------------- */
 
-	function initTarifs() {
-		var tbody = document.getElementById( 'jcmv-tarifs-lignes' );
-		var ajouter = document.getElementById( 'jcmv-tarifs-ajouter' );
-		var gabarit = document.getElementById( 'jcmv-tarifs-gabarit' );
+	function initTailles() {
+		var zone = document.getElementById( 'jcmv-tailles' );
+		var systemes = document.querySelectorAll( '.jcmv-systeme-choix input[type="radio"]' );
 
-		if ( ! tbody || ! ajouter || ! gabarit ) {
+		if ( ! zone || ! systemes.length ) {
 			return;
 		}
 
-		ajouter.addEventListener( 'click', function () {
-			var ligne = gabarit.content.firstElementChild.cloneNode( true );
-			tbody.appendChild( ligne );
-			renumeroter( tbody );
-
-			var champ = ligne.querySelector( 'input[type="text"]' );
-			if ( champ ) {
-				champ.focus();
-			}
-		} );
-
-		// Délégation : les lignes ajoutées après coup sont couvertes sans
-		// avoir à recâbler quoi que ce soit.
-		tbody.addEventListener( 'click', function ( event ) {
-			var bouton = event.target.closest( '.jcmv-tarifs__supprimer' );
-			if ( ! bouton ) {
-				return;
-			}
-
-			var ligne = bouton.closest( '.jcmv-tarifs__ligne' );
-			if ( ! ligne ) {
-				return;
-			}
-
-			// Le focus doit survivre à la suppression, sinon il retombe sur
-			// <body> et la navigation au clavier repart du haut de la page.
-			var suivant = ligne.nextElementSibling || ligne.previousElementSibling;
-
-			ligne.remove();
-			renumeroter( tbody );
-
-			var cible = suivant
-				? suivant.querySelector( '.jcmv-tarifs__supprimer' )
-				: ajouter;
-			if ( cible ) {
-				cible.focus();
-			}
+		Array.prototype.forEach.call( systemes, function ( radio ) {
+			radio.addEventListener( 'change', function () {
+				if ( radio.checked ) {
+					reconstruire( zone, radio.value );
+				}
+			} );
 		} );
 	}
 
-	function renumeroter( tbody ) {
-		var lignes = tbody.querySelectorAll( '.jcmv-tarifs__ligne' );
+	/**
+	 * Reconstruit la liste pour un système, en conservant les tailles déjà
+	 * cochées qui n'en font pas partie.
+	 *
+	 * Sans cette conservation, changer de système effacerait silencieusement
+	 * des tailles saisies — le genre de perte qu'on ne remarque qu'après
+	 * enregistrement.
+	 */
+	function reconstruire( zone, termId ) {
+		var systemes = config.systemes || {};
+		var proposees = systemes[ termId ] || [];
+		var cochees = lireCochees( zone );
 
-		Array.prototype.forEach.call( lignes, function ( ligne, index ) {
-			Array.prototype.forEach.call(
-				ligne.querySelectorAll( 'input[name]' ),
-				function ( input ) {
-					input.name = input.name.replace(
-						/jcmv_tarif\[[^\]]*\]/,
-						'jcmv_tarif[' + index + ']'
-					);
-				}
+		var index = proposees.map( minuscule );
+		var horsSysteme = cochees.filter( function ( taille ) {
+			return -1 === index.indexOf( minuscule( taille ) );
+		} );
+
+		zone.innerHTML = '';
+
+		if ( ! proposees.length ) {
+			zone.appendChild( aide( termId && '0' !== termId ? i18n.sansTailles : i18n.sansSysteme ) );
+		}
+
+		if ( ! proposees.length && ! horsSysteme.length ) {
+			return;
+		}
+
+		var liste = document.createElement( 'ul' );
+		liste.className = 'jcmv-tailles__liste';
+
+		proposees.forEach( function ( taille ) {
+			liste.appendChild(
+				item( taille, -1 !== cochees.map( minuscule ).indexOf( minuscule( taille ) ), false )
 			);
 		} );
+
+		horsSysteme.forEach( function ( taille ) {
+			liste.appendChild( item( taille, true, true ) );
+		} );
+
+		zone.appendChild( liste );
+	}
+
+	function lireCochees( zone ) {
+		return Array.prototype.map.call(
+			zone.querySelectorAll( 'input[type="checkbox"]:checked' ),
+			function ( input ) {
+				return input.value;
+			}
+		);
+	}
+
+	function item( taille, checked, horsSysteme ) {
+		var li = document.createElement( 'li' );
+		li.className = 'jcmv-tailles__item' + ( horsSysteme ? ' is-hors-systeme' : '' );
+
+		var label = document.createElement( 'label' );
+
+		var input = document.createElement( 'input' );
+		input.type = 'checkbox';
+		input.name = 'jcmv_produit_tailles[]';
+		input.value = taille;
+		input.checked = checked;
+		label.appendChild( input );
+
+		var texte = document.createElement( 'span' );
+		texte.textContent = taille;
+		label.appendChild( texte );
+
+		if ( horsSysteme ) {
+			var marque = document.createElement( 'em' );
+			marque.className = 'jcmv-tailles__hors';
+			marque.textContent = i18n.horsSysteme || 'hors système';
+			label.appendChild( marque );
+		}
+
+		li.appendChild( label );
+		return li;
+	}
+
+	function aide( texte ) {
+		var p = document.createElement( 'p' );
+		p.className = 'description';
+		p.textContent = texte || '';
+		return p;
+	}
+
+	function minuscule( valeur ) {
+		return String( valeur ).toLowerCase();
 	}
 
 	/* --- Galerie --------------------------------------------------------- */
@@ -104,8 +148,8 @@
 		choisir.addEventListener( 'click', function () {
 			if ( ! cadre ) {
 				cadre = window.wp.media( {
-					title: config.mediaTitle || 'Photos du produit',
-					button: { text: config.mediaButton || 'Utiliser ces photos' },
+					title: i18n.mediaTitle || 'Photos du produit',
+					button: { text: i18n.mediaButton || 'Utiliser ces photos' },
 					library: { type: 'image' },
 					multiple: 'add',
 				} );
@@ -113,19 +157,19 @@
 				cadre.on( 'select', function () {
 					appliquer( cadre.state().get( 'selection' ).toJSON() );
 				} );
-			}
 
-			// Présélectionner ce qui est déjà retenu évite au bureau de tout
-			// resélectionner pour ajouter une seule photo.
-			cadre.on( 'open', function () {
-				var selection = cadre.state().get( 'selection' );
-				selection.reset();
-				ids().forEach( function ( id ) {
-					var attachment = window.wp.media.attachment( id );
-					attachment.fetch();
-					selection.add( attachment );
+				// Présélectionner ce qui est déjà retenu évite au bureau de
+				// tout resélectionner pour ajouter une seule photo.
+				cadre.on( 'open', function () {
+					var selection = cadre.state().get( 'selection' );
+					selection.reset();
+					ids().forEach( function ( id ) {
+						var attachment = window.wp.media.attachment( id );
+						attachment.fetch();
+						selection.add( attachment );
+					} );
 				} );
-			} );
+			}
 
 			cadre.open();
 		} );
@@ -136,9 +180,9 @@
 				return;
 			}
 
-			var item = bouton.closest( '.jcmv-galerie__item' );
-			if ( item ) {
-				item.remove();
+			var element = bouton.closest( '.jcmv-galerie__item' );
+			if ( element ) {
+				element.remove();
 				synchroniser();
 				choisir.focus();
 			}
@@ -165,39 +209,35 @@
 						attachment.sizes.thumbnail.url ) ||
 					attachment.url;
 
-				var item = document.createElement( 'li' );
-				item.className = 'jcmv-galerie__item';
-				item.dataset.id = attachment.id;
+				var element = document.createElement( 'li' );
+				element.className = 'jcmv-galerie__item';
+				element.dataset.id = attachment.id;
 
 				var img = document.createElement( 'img' );
 				img.src = url;
 				// Vignette d'administration purement décorative : le texte
 				// alternatif du site vient du titre du produit, pas d'ici.
 				img.alt = '';
-				item.appendChild( img );
+				element.appendChild( img );
 
 				var retirer = document.createElement( 'button' );
 				retirer.type = 'button';
 				retirer.className = 'button-link jcmv-galerie__retirer';
-				retirer.textContent = 'Retirer';
-				item.appendChild( retirer );
+				retirer.textContent = i18n.retirer || 'Retirer';
+				element.appendChild( retirer );
 
-				liste.appendChild( item );
+				liste.appendChild( element );
 			} );
 
 			synchroniser();
 		}
 
 		function synchroniser() {
-			var items = liste.querySelectorAll( '.jcmv-galerie__item' );
-
 			champ.value = Array.prototype.map
-				.call( items, function ( item ) {
-					return item.dataset.id;
+				.call( liste.querySelectorAll( '.jcmv-galerie__item' ), function ( element ) {
+					return element.dataset.id;
 				} )
 				.join( ',' );
-
-			choisir.disabled = false;
 		}
 	}
 } )();
