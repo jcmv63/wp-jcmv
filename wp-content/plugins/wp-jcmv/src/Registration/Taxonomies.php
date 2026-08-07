@@ -8,6 +8,8 @@
  *                         term meta (éditables dans l'admin, voir Admin\TermFields).
  *                         Également enregistrée sur le CPT de The Events Calendar
  *                         si présent (« compétition cadets »).
+ * - jcmv_categorie_produit : rayons de la boutique (ADR-005). Seedée, plate :
+ *                         quinze références ne justifient pas une hiérarchie.
  *
  * @package wp-jcmv
  */
@@ -20,8 +22,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 final class Taxonomies {
 
-	public const DISCIPLINE    = 'jcmv_discipline';
-	public const CATEGORIE_AGE = 'jcmv_categorie_age';
+	public const DISCIPLINE        = 'jcmv_discipline';
+	public const CATEGORIE_AGE     = 'jcmv_categorie_age';
+	public const CATEGORIE_PRODUIT = 'jcmv_categorie_produit';
 
 	/** CPT de The Events Calendar. */
 	private const TEC_CPT = 'tribe_events';
@@ -61,6 +64,33 @@ final class Taxonomies {
 				'show_admin_column' => true,
 				'hierarchical'      => true,
 				'rewrite'           => false,
+			)
+		);
+
+		/*
+		 * Rayons de la boutique. Plate (hierarchical => false) mais avec la
+		 * metabox à cases à cocher plutôt que le champ à virgules : un rayon
+		 * est choisi dans une liste courte et fermée, pas inventé à chaque
+		 * saisie — c'est ce qui évite « Textile », « textiles » et « Textile
+		 * club » côte à côte au bout de deux saisons.
+		 */
+		register_taxonomy(
+			self::CATEGORIE_PRODUIT,
+			array( PostTypes::PRODUIT ),
+			array(
+				'labels'            => array(
+					'name'          => __( 'Rayons', 'wp-jcmv' ),
+					'singular_name' => __( 'Rayon', 'wp-jcmv' ),
+					'add_new_item'  => __( 'Ajouter un rayon', 'wp-jcmv' ),
+					'not_found'     => __( 'Aucun rayon trouvé.', 'wp-jcmv' ),
+				),
+				'public'            => false,
+				'show_ui'           => true,
+				'show_in_rest'      => true,
+				'show_admin_column' => true,
+				'hierarchical'      => false,
+				'rewrite'           => false,
+				'meta_box_cb'       => 'post_categories_meta_box',
 			)
 		);
 

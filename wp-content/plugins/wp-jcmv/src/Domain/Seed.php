@@ -44,7 +44,24 @@ final class Seed {
 		'senior'       => array( 'Sénior / Vétéran', 20, 99 ),
 	);
 
+	/**
+	 * Rayons de la boutique (ADR-005). Volontairement peu nombreux : un rayon
+	 * n'a d'intérêt que s'il regroupe plusieurs produits.
+	 */
+	private const CATEGORIES_PRODUIT = array(
+		'textile'     => 'Textile',
+		'judogi'      => 'Judogis',
+		'equipement'  => 'Équipement',
+		'accessoires' => 'Accessoires',
+	);
+
 	public static function run(): void {
+		foreach ( self::CATEGORIES_PRODUIT as $slug => $label ) {
+			if ( ! term_exists( $slug, Taxonomies::CATEGORIE_PRODUIT ) ) {
+				wp_insert_term( $label, Taxonomies::CATEGORIE_PRODUIT, array( 'slug' => $slug ) );
+			}
+		}
+
 		foreach ( self::DISCIPLINES as $slug => $label ) {
 			if ( ! term_exists( $slug, Taxonomies::DISCIPLINE ) ) {
 				wp_insert_term( $label, Taxonomies::DISCIPLINE, array( 'slug' => $slug ) );

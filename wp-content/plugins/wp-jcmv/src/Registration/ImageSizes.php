@@ -13,6 +13,14 @@
  * Toute augmentation de --jcmv-logo-h dans le CSS du bloc doit être
  * répercutée ici, puis suivie d'une régénération des miniatures.
  *
+ * `jcmv-produit` fait l'inverse : **hard crop** (ADR-005). Une grille de
+ * produits n'est lisible que si toutes les vignettes ont le même gabarit ;
+ * un t-shirt photographié au format paysage et un judogi en portrait
+ * casseraient l'alignement. Le rognage centré est ici un service rendu au
+ * bureau, qui n'a pas à cadrer ses photos au pixel.
+ *
+ * 600 × 750 (ratio 4:5) : sert une carte de ~300 px en HiDPI.
+ *
  * @package wp-jcmv
  */
 
@@ -24,7 +32,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 final class ImageSizes {
 
-	public const LOGO = 'jcmv-logo';
+	public const LOGO    = 'jcmv-logo';
+	public const PRODUIT = 'jcmv-produit';
 
 	public static function register(): void {
 		add_action( 'after_setup_theme', array( self::class, 'add' ) );
@@ -33,6 +42,7 @@ final class ImageSizes {
 
 	public static function add(): void {
 		add_image_size( self::LOGO, 600, 200, false );
+		add_image_size( self::PRODUIT, 600, 750, true );
 	}
 
 	/**
@@ -40,7 +50,8 @@ final class ImageSizes {
 	 * pour vérifier ce qui sera servi).
 	 */
 	public static function name( array $sizes ): array {
-		$sizes[ self::LOGO ] = __( 'Logo partenaire', 'wp-jcmv' );
+		$sizes[ self::LOGO ]    = __( 'Logo partenaire', 'wp-jcmv' );
+		$sizes[ self::PRODUIT ] = __( 'Produit boutique', 'wp-jcmv' );
 		return $sizes;
 	}
 }

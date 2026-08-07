@@ -8,11 +8,17 @@
  * Implémenté via les filtres court-circuit pre_trash_post / pre_delete_post :
  * retourner false annule l'opération (WordPress affiche alors un échec).
  *
+ * La classe porte aussi le nettoyage inverse : les lignes tarifaires d'un
+ * produit réellement supprimé (ADR-005). Un produit n'étant référencé par
+ * rien, sa suppression est libre — mais sa grille de tailles doit partir avec
+ * lui, faute de clé étrangère pour l'emporter (convention ADR-001).
+ *
  * @package wp-jcmv
  */
 
 namespace JCMV\Registration;
 
+use JCMV\Domain\ProductPriceRepository;
 use JCMV\Domain\Schema;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -24,6 +30,28 @@ final class DeletionGuard {
 	public static function register(): void {
 		add_filter( 'pre_trash_post', array( self::class, 'guard' ), 10, 2 );
 		add_filter( 'pre_delete_post', array( self::class, 'guard' ), 10, 2 );
+
+		/*
+		 * before_delete_post, et non wp_trash_post : un produit à la corbeille
+		 * peut être restauré, il ne doit pas y perdre ses tarifs en chemin.
+		 * Hors branche is_admin() volontairement — une suppression peut venir
+		 * de WP-CLI ou de l'API REST.
+		 */
+		add_action( 'before_delete_post', array( self::class, 'purge_product_prices' ), 10, 2 );
+	}
+
+	/**
+	 * @param int           $post_id ID du post supprimé.
+	 * @param \WP_Post|null $post    Objet supprimé (absent avant WP 5.5).
+	 */
+	public static function purge_product_prices( int $post_id, $post = null ): void {
+		$post_type = $post instanceof \WP_Post ? $post->post_type : get_post_type( $post_id );
+
+		if ( PostTypes::PRODUIT !== $post_type ) {
+			return;
+		}
+
+		( new ProductPriceRepository() )->delete_for_product( $post_id );
 	}
 
 	/**

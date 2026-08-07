@@ -1,0 +1,96 @@
+/**
+ * Metabox produit (ADR-005).
+ *
+ * Styles d'administration : on reste sur les couleurs du core WordPress
+ * (variables --wp-admin-theme-*), pas sur la charte du club — l'admin doit
+ * ressembler à l'admin, un bénévole n'y cherche pas une identité de marque.
+ */
+
+.jcmv-produit-sous-titre {
+	margin: 1.5em 0 0.25em;
+	font-size: 1.1em;
+}
+
+/* --- Grille tarifaire --- */
+
+.jcmv-tarifs {
+	margin-top: 0.75em;
+}
+
+.jcmv-tarifs th,
+.jcmv-tarifs td {
+	vertical-align: middle;
+}
+
+.jcmv-tarifs__actions {
+	width: 6em;
+	text-align: right;
+}
+
+.jcmv-tarifs__supprimer {
+	color: #b32d2e;
+}
+
+.jcmv-tarifs__supprimer:hover,
+.jcmv-tarifs__supprimer:focus {
+	color: #8a2424;
+}
+
+/* Le tableau vide ne doit pas apparaître comme une erreur : sans ligne,
+   seul l'en-tête reste, et le bouton d'ajout est juste dessous. */
+.jcmv-tarifs tbody:empty + tfoot,
+.jcmv-tarifs tbody:empty {
+	border: 0;
+}
+
+/* --- Galerie --- */
+
+.jcmv-galerie__liste {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	margin: 0.75em 0;
+	padding: 0;
+	list-style: none;
+}
+
+.jcmv-galerie__item {
+	position: relative;
+	margin: 0;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	padding: 4px;
+	background: #fff;
+}
+
+.jcmv-galerie__item img {
+	display: block;
+	width: 90px;
+	height: 90px;
+	object-fit: cover;
+	border-radius: 2px;
+}
+
+/*
+ * Le bouton de retrait reste sous la vignette plutôt qu'en pastille flottante :
+ * une croix superposée sur une photo sombre devient invisible, et la cible
+ * tactile serait sous les 24 px recommandés.
+ */
+.jcmv-galerie__retirer {
+	display: block;
+	width: 100%;
+	margin-top: 4px;
+	padding: 2px 0;
+	text-align: center;
+	color: #b32d2e;
+}
+
+.jcmv-galerie__retirer:hover,
+.jcmv-galerie__retirer:focus {
+	color: #8a2424;
+}
+
+.jcmv-galerie__item:focus-within {
+	outline: 2px solid var(--wp-admin-theme-color, #3858e9);
+	outline-offset: 1px;
+}

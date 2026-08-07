@@ -49,6 +49,7 @@ final class Plugin {
 			Admin\TermFields::register();
 			Admin\LieuMetabox::register();
 			Admin\PartenaireMetabox::register();
+			Admin\ProduitMetabox::register();
 			Updater::register();
 		}
 	}

@@ -1,0 +1,39 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "jcmv/boutique",
+	"title": "Boutique du club",
+	"category": "jcmv",
+	"icon": "tshirt",
+	"description": "Les produits publiés ayant une photo, triés par ordre d'affichage. Un rayon peut être sélectionné pour n'afficher qu'une partie du catalogue.",
+	"textdomain": "wp-jcmv",
+	"attributes": {
+		"categorie": {
+			"type": "string",
+			"default": ""
+		},
+		"limite": {
+			"type": "number",
+			"default": 0
+		},
+		"colonnes": {
+			"type": "number",
+			"default": 3
+		},
+		"afficherDetails": {
+			"type": "boolean",
+			"default": true
+		}
+	},
+	"editorScript": "file:./index.js",
+	"style": "file:./style.css",
+	"viewScript": "file:./view.js",
+	"render": "file:./render.php",
+	"supports": {
+		"html": false,
+		"multiple": true,
+		"spacing": {
+			"margin": [ "top", "bottom" ]
+		}
+	}
+}
