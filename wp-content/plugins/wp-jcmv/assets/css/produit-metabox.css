@@ -1,0 +1,127 @@
+/**
+ * Metabox produit (ADR-005).
+ *
+ * Styles d'administration : on reste sur les couleurs du core WordPress
+ * (variables --wp-admin-theme-*), pas sur la charte du club — l'admin doit
+ * ressembler à l'admin, un bénévole n'y cherche pas une identité de marque.
+ */
+
+.jcmv-produit-sous-titre {
+	margin: 1.5em 0 0.25em;
+	font-size: 1.1em;
+}
+
+/* --- Tailles --- */
+
+.jcmv-tailles__liste {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px 16px;
+	margin: 0.75em 0;
+	padding: 0;
+	list-style: none;
+}
+
+.jcmv-tailles__item {
+	margin: 0;
+}
+
+/*
+ * Cible de clic généreuse : le bureau coche une dizaine de cases d'affilée,
+ * souvent sur portable. Le label entier est cliquable, avec un fond au
+ * survol pour que la zone active se voie.
+ */
+.jcmv-tailles__item label {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 4px 8px;
+	border-radius: 3px;
+	cursor: pointer;
+}
+
+.jcmv-tailles__item label:hover {
+	background: #f0f0f1;
+}
+
+.jcmv-tailles__item:focus-within label {
+	outline: 2px solid var(--wp-admin-theme-color, #3858e9);
+	outline-offset: 1px;
+}
+
+/*
+ * « Hors système » n'est pas une erreur : c'est une taille conservée d'un
+ * ancien système ou ajoutée à la main. Le signalement reste neutre — un
+ * rouge d'alerte pousserait à la décocher sans raison.
+ */
+.jcmv-tailles__hors {
+	font-size: 11px;
+	font-style: normal;
+	color: #646970;
+	background: #f0f0f1;
+	border-radius: 9px;
+	padding: 1px 7px;
+}
+
+.jcmv-tailles-libres label {
+	display: block;
+	margin-bottom: 4px;
+	font-weight: 600;
+}
+
+.jcmv-tailles-libres .description {
+	display: block;
+	margin-top: 4px;
+}
+
+/* --- Galerie --- */
+
+.jcmv-galerie__liste {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	margin: 0.75em 0;
+	padding: 0;
+	list-style: none;
+}
+
+.jcmv-galerie__item {
+	position: relative;
+	margin: 0;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	padding: 4px;
+	background: #fff;
+}
+
+.jcmv-galerie__item img {
+	display: block;
+	width: 90px;
+	height: 90px;
+	object-fit: cover;
+	border-radius: 2px;
+}
+
+/*
+ * Le bouton de retrait reste sous la vignette plutôt qu'en pastille flottante :
+ * une croix superposée sur une photo sombre devient invisible, et la cible
+ * tactile serait sous les 24 px recommandés.
+ */
+.jcmv-galerie__retirer {
+	display: block;
+	width: 100%;
+	margin-top: 4px;
+	padding: 2px 0;
+	text-align: center;
+	color: #b32d2e;
+}
+
+.jcmv-galerie__retirer:hover,
+.jcmv-galerie__retirer:focus {
+	color: #8a2424;
+}
+
+.jcmv-galerie__item:focus-within {
+	outline: 2px solid var(--wp-admin-theme-color, #3858e9);
+	outline-offset: 1px;
+}

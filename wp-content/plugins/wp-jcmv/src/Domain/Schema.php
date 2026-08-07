@@ -26,8 +26,15 @@ final class Schema {
 	/**
 	 * À incrémenter à chaque évolution du schéma ; comparée à l'option
 	 * pour rejouer dbDelta() au chargement suivant.
+	 *
+	 * La version 2 décrit un schéma identique à la version 1 : elle avait été
+	 * posée pour une table `jcmv_produit_tarif` finalement abandonnée avant
+	 * livraison (ADR-005). Elle n'est pas redescendue à 1 — une version de
+	 * schéma ne recule jamais, sous peine de rejouer les migrations sur les
+	 * installations déjà à jour. Les bases de développement ayant créé la
+	 * table la conservent en orpheline ; à supprimer à la main.
 	 */
-	public const DB_VERSION = '1';
+	public const DB_VERSION = '2';
 
 	private const OPTION = 'jcmv_db_version';
 

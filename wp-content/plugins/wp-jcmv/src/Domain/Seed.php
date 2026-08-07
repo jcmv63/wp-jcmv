@@ -44,6 +44,15 @@ final class Seed {
 		'senior'       => array( 'Sénior / Vétéran', 20, 99 ),
 	);
 
+	/*
+	 * Les familles et les systèmes de tailles de la boutique (ADR-005) ne sont
+	 * volontairement PAS seedés. On n'embarque un référentiel que lorsqu'il
+	 * existe en dehors du club — catégories FFJDA, disciplines. Les familles de
+	 * produits sont un choix de présentation du bureau, et les systèmes de
+	 * tailles se lisent sur le catalogue du fournisseur : les deviner ici
+	 * reviendrait à imposer des slugs immuables sur des valeurs inventées.
+	 */
+
 	public static function run(): void {
 		foreach ( self::DISCIPLINES as $slug => $label ) {
 			if ( ! term_exists( $slug, Taxonomies::DISCIPLINE ) ) {

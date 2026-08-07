@@ -8,6 +8,10 @@
  * Implémenté via les filtres court-circuit pre_trash_post / pre_delete_post :
  * retourner false annule l'opération (WordPress affiche alors un échec).
  *
+ * Les produits de la boutique (ADR-005) ne sont pas concernés : rien ne les
+ * référence, et leurs données tiennent entièrement en postmeta — donc
+ * emportées par WordPress à la suppression.
+ *
  * @package wp-jcmv
  */
 

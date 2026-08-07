@@ -1,7 +1,10 @@
 # ADR-002 : Architecture de l'administration — page « Saisons » en REST + JS, natif partout ailleurs
 
 **Statut :** Accepté
-**Date :** 2026-07-18
+**Date :** 2026-07-18 — amendé le 2026-08-07 (éditeur de blocs des CPT du module :
+précision au niveau 1 de la décision, conséquence ajoutée en « À revisiter ». La
+décision elle-même est inchangée ; l'amendement documente un choix d'implémentation
+qui n'avait été consigné que dans un commentaire de code.)
 **Décideurs :** Alban (développeur)
 **Dépend de :** ADR-001 (répartition du stockage)
 
@@ -31,8 +34,18 @@ Administration à **trois niveaux, du plus natif au plus riche** — avec pour g
 *si un besoin d'admin peut être servi par un écran natif ou un formulaire PHP, il n'entre
 pas dans l'app JS ; l'app ne grandit que si le besoin est intrinsèquement interactif.*
 
-1. **Écrans natifs tels quels** : cours, lieux, termes de taxonomies, événements (TEC),
-   articles, médias. Aucune UI custom (au plus une metabox si un champ apparaît).
+1. **Écrans natifs** : cours, lieux, termes de taxonomies, événements (TEC), articles,
+   médias. Aucune UI custom (au plus une metabox si un champ apparaît).
+
+   Avec une précision qui n'est pas un détail : **l'éditeur de blocs est désactivé sur
+   les CPT du module** (`use_block_editor_for_post_type` retourne `false` pour
+   `jcmv_cours`, `jcmv_lieu`, `jcmv_partenaire`). Un cours ou un lieu est une fiche de
+   données, pas une page. Gutenberg y propose un canevas de mise en page à un objet qui
+   n'en a pas — inséreur de blocs, compositions, pleine largeur — et relègue les champs
+   métier, ceux que le bureau vient réellement modifier, sous un accordéon en bas
+   d'écran. L'écran classique restitue la hiérarchie réelle : titre, champs, puis
+   description. Le « tel quel » vaut pour les taxonomies, les articles et les médias,
+   qui gardent leur écran par défaut.
 2. **Formulaires PHP classiques pour le paramétrage** : champs `age_min`/`age_max` sur
    l'écran d'édition des termes (hooks `{taxonomy}_edit_form_fields`), éventuelle page de
    réglages via la Settings API. Écrans statiques par nature — du React ici serait de la
@@ -164,6 +177,13 @@ bureau (ADR-001, force n° 1) que sert directement la qualité de cette page.
   React vanilla sans toucher aux endpoints.
 - L'ouverture d'endpoints publics (lecture seule) si un front headless ou une app mobile
   apparaissait — non prévu à ce jour.
+- **L'écran classique des CPT du module repose sur `use_block_editor_for_post_type`**,
+  filtre du core non déprécié et sans retrait annoncé — mais la direction du projet
+  WordPress reste le bloc. Si ce support disparaissait, tous les CPT du module
+  basculeraient d'un coup : la reprise consisterait à porter les metaboxes en panneaux
+  latéraux Gutenberg, sur un périmètre connu et fermé (au plus une metabox par CPT).
+  Rien à faire aujourd'hui ; à vérifier aux montées de version majeures de WordPress,
+  au même titre que le rendu du thème enfant (ADR-003).
 
 ## Actions
 

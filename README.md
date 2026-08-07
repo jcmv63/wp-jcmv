@@ -77,6 +77,16 @@ DELETE FROM wp_options WHERE option_name LIKE '%jcmv_theme_update_manifest%';
 DELETE FROM wp_options WHERE option_name = '_site_transient_update_themes';
 ```
 
+### Exécuter le linter récursivement
+
+```
+docker compose exec wordpress sh -c \
+  'find wp-content/plugins/wp-jcmv -name "*.php" -print0 | xargs -0 -n1 php -l' \
+  | grep -v "No syntax errors"
+```
+Pas de ligne affichée = succès
+
+
 ## Outillage
 
 - [squoosh](https://squoosh.app/) : outil en ligne pour optimiser les images
