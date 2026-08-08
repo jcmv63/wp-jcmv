@@ -162,15 +162,9 @@ final class ProductRepository {
 		}
 	}
 
-	/**
-	 * Formate un montant pour l'affichage : « 25 € », « 24,50 € ».
-	 *
-	 * Les centimes ne sont montrés que s'il y en a — « 25,00 € » sur une
-	 * étiquette de t-shirt fait comptable, pas boutique.
+	/*
+	 * format_price() vivait ici. Déplacé dans Domain\Money : la règle
+	 * d'affichage des montants ne dépend pas de la boutique, et deux autres
+	 * blocs en avaient recopié une variante divergente.
 	 */
-	public static function format_price( float $amount ): string {
-		$decimals = ( round( $amount, 2 ) === round( $amount, 0 ) ) ? 0 : 2;
-
-		return number_format_i18n( $amount, $decimals ) . ' €';
-	}
 }

@@ -2,15 +2,21 @@
 /**
  * Plugin Name:       JCMV — Gestion du club
  * Description:       Cours, créneaux, tarifs, lieux, catégories d'âge et boutique.
- * Version:           0.4.0
+ * Version:           0.4.1
  * Requires at least: 6.7
  * Requires PHP:      8.2
  * Author:            Alban
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       wp-jcmv
+ * Update URI:        https://github.com/jcmv63/wp-jcmv
  *
  * @package wp-jcmv
+ *
+ * Note : `Update URI` n'est pas décoratif. Sans lui, le jour où un plugin de
+ * slug `wp-jcmv` paraîtrait sur wordpress.org, WordPress proposerait SA mise à
+ * jour et écraserait l'installation du club. L'en-tête réserve le nom : seul
+ * l'updater du plugin (voir src/Updater.php) peut alors le mettre à jour.
  *
  * Note : pas de fichier uninstall.php volontairement — les données du club
  * (saisons, créneaux, tarifs) ne doivent jamais être détruites par une
@@ -23,7 +29,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'JCMV_VERSION', '0.4.0' );
+define( 'JCMV_VERSION', '0.4.1' );
 define( 'JCMV_PLUGIN_FILE', __FILE__ );
 define( 'JCMV_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'JCMV_PLUGIN_URL', plugin_dir_url( __FILE__ ) );

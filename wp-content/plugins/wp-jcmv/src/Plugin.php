@@ -25,10 +25,13 @@ final class Plugin {
 	 * Câble les différents modules du plugin (hook plugins_loaded).
 	 */
 	public static function boot(): void {
-		// Rejoue les migrations si le plugin a été mis à jour sans réactivation
-		// (mise à jour par zip ou par Plugin Update Checker).
+		// Rejoue migrations et attribution de capability si le plugin a été mis
+		// à jour sans réactivation (mise à jour par zip ou par l'updater). Les
+		// deux sont gardées par une version stockée : sans changement, elles se
+		// résument à une lecture d'option autochargée.
 		if ( is_admin() ) {
 			Domain\Schema::maybe_migrate();
+			Registration\Capabilities::maybe_grant();
 		}
 
 		add_action( 'init', array( Registration\PostTypes::class, 'register' ) );

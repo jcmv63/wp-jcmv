@@ -51,6 +51,29 @@ const emptySchedule = () => ( {
 	note: '',
 } );
 
+/**
+ * « 24,50 » → 24.5, « » → 0.
+ *
+ * Même règle que PostTypes::sanitize_amount() côté PHP, et pour la même raison :
+ * un clavier français produit une virgule décimale. Un parseFloat() nu la
+ * tronque — 24,50 € enregistré à 24 €, sans rien signaler. Sur des montants
+ * que le bureau relit rarement, c'est le genre d'écart qui vit une saison.
+ *
+ * C'est la contrepartie du choix de saisie : les champs de montant sont en
+ * `type="text" inputMode="decimal"` et non `type="number"`, comme la metabox
+ * produit l'avait déjà tranché. Un champ `number` rejette la virgule selon la
+ * locale du navigateur, et le fait en silence — la saisie disparaît sous les
+ * doigts. On préfère accepter les deux séparateurs et normaliser ici.
+ *
+ * L'état conserve la chaîne brute et la conversion n'a lieu qu'à
+ * l'enregistrement : reformater à chaque frappe ferait sauter le curseur dès
+ * qu'on tape « 24, ».
+ */
+const toAmount = ( value ) => {
+	const nombre = parseFloat( String( value ).replace( ',', '.' ) );
+	return Number.isFinite( nombre ) ? nombre : 0;
+};
+
 const emptyPricing = () => ( {
 	label: '',
 	amount: 0,
@@ -151,9 +174,8 @@ function PricingRow( { row, onChange, onRemove } ) {
 			<TextControl
 				__nextHasNoMarginBottom
 				label="Montant (€)"
-				type="number"
-				step="0.01"
-				min="0"
+				type="text"
+				inputMode="decimal"
 				value={ row.amount }
 				onChange={ ( v ) => onChange( { ...row, amount: v } ) }
 			/>
@@ -177,17 +199,22 @@ function PricingRow( { row, onChange, onRemove } ) {
 	);
 }
 
+/*
+ * Les lignes sont un état local, initialisé une seule fois : la carte est
+ * remontée par sa `key` quand il faut la resynchroniser (changement de saison,
+ * ou sauvegarde de CE cours). Voir la construction de la clé dans App.
+ *
+ * Il y avait ici un `useEffect` de resynchronisation sur `[ schedules, pricing ]`.
+ * Ces deux props sont des tableaux recalculés à chaque rendu d'App — leur
+ * identité changeait donc en permanence, et le moindre changement d'état du
+ * parent (une notice affichée, une autre carte en cours d'enregistrement,
+ * la fermeture d'un message) rejouait l'effet : les lignes en cours de saisie
+ * repassaient à l'état serveur et `dirty` retombait à false, sans un mot.
+ */
 function CourseCard( { course, locations, schedules, pricing, onSave, saving } ) {
 	const [ sch, setSch ] = useState( schedules );
 	const [ pri, setPri ] = useState( pricing );
 	const [ dirty, setDirty ] = useState( false );
-
-	// Resynchronise quand la saison change ou après sauvegarde.
-	useEffect( () => {
-		setSch( schedules );
-		setPri( pricing );
-		setDirty( false );
-	}, [ schedules, pricing ] );
 
 	const update = ( setter ) => ( next ) => {
 		setter( next );
@@ -275,7 +302,16 @@ function FeesPanel( { season, onSaved, setNotice } ) {
 			const updated = await apiFetch( {
 				path: `/jcmv/v1/seasons/${ season.id }/fees`,
 				method: 'PUT',
-				data: fees,
+				data: {
+					...fees,
+					// TextControl rend toujours une chaîne, et une chaîne vide
+					// quand le champ est effacé — ce que le bureau fait pour
+					// dire « zéro ». Le schéma REST attend un nombre : sans
+					// cette conversion, effacer un montant renverrait une erreur
+					// de type au lieu d'enregistrer 0.
+					licence_amount: toAmount( fees.licence_amount ),
+					adhesion_amount: toAmount( fees.adhesion_amount ),
+				},
 			} );
 			onSaved( updated );
 			setDirty( false );
@@ -299,9 +335,8 @@ function FeesPanel( { season, onSaved, setNotice } ) {
 					<TextControl
 						__nextHasNoMarginBottom
 						label="Licence (€)"
-						type="number"
-						step="0.01"
-						min="0"
+						type="text"
+						inputMode="decimal"
 						value={ fees.licence_amount }
 						onChange={ set( 'licence_amount' ) }
 					/>
@@ -314,9 +349,8 @@ function FeesPanel( { season, onSaved, setNotice } ) {
 					<TextControl
 						__nextHasNoMarginBottom
 						label="Adhésion (€)"
-						type="number"
-						step="0.01"
-						min="0"
+						type="text"
+						inputMode="decimal"
 						value={ fees.adhesion_amount }
 						onChange={ set( 'adhesion_amount' ) }
 					/>
@@ -341,6 +375,13 @@ function App() {
 	const [ grid, setGrid ] = useState( null );
 	const [ notice, setNotice ] = useState( null );
 	const [ savingCourse, setSavingCourse ] = useState( 0 );
+	/*
+	 * Compteur d'enregistrements par cours. Il entre dans la `key` de la carte :
+	 * l'incrémenter la remonte sur la donnée fraîche du serveur. Par cours, et
+	 * non global, pour qu'enregistrer un cours ne vide pas la saisie en cours
+	 * dans un autre.
+	 */
+	const [ savedAt, setSavedAt ] = useState( {} );
 
 	useEffect( () => {
 		Promise.all( [
@@ -426,17 +467,28 @@ function App() {
 	const saveCourse = async ( courseId, sch, pri ) => {
 		setSavingCourse( courseId );
 		try {
-			await apiFetch( {
-				path: `/jcmv/v1/seasons/${ seasonId }/courses/${ courseId }/schedules`,
-				method: 'PUT',
-				data: { rows: sch },
-			} );
+			/*
+			 * Une seule requête pour les deux lots. Il y en avait deux, à la
+			 * suite : un échec sur la seconde laissait la première écrite, et
+			 * le message d'erreur mentait au bureau. Le serveur les écrit
+			 * désormais dans la même transaction.
+			 */
 			const freshGrid = await apiFetch( {
-				path: `/jcmv/v1/seasons/${ seasonId }/courses/${ courseId }/pricing`,
+				path: `/jcmv/v1/seasons/${ seasonId }/courses/${ courseId }`,
 				method: 'PUT',
-				data: { rows: pri },
+				data: {
+					schedules: sch,
+					// Montants normalisés ici comme ceux des frais : le
+					// repository sait aussi lire une virgule, mais c'est son
+					// rôle de dernier rempart pour les autres écrivains
+					// (WP-CLI, import), pas la façon dont l'app doit écrire.
+					pricing: pri.map( ( r ) => ( { ...r, amount: toAmount( r.amount ) } ) ),
+				},
 			} );
 			setGrid( freshGrid );
+			// L'écriture étant atomique, ce compteur ne peut plus remonter la
+			// carte sur un état serveur à moitié à jour.
+			setSavedAt( ( prev ) => ( { ...prev, [ courseId ]: ( prev[ courseId ] || 0 ) + 1 } ) );
 			setNotice( { status: 'success', message: 'Créneaux et tarifs enregistrés.' } );
 		} catch ( e ) {
 			setNotice( { status: 'error', message: e.message || 'Sauvegarde impossible.' } );
@@ -530,7 +582,7 @@ function App() {
 			{ grid &&
 				courses.map( ( course ) => (
 					<CourseCard
-						key={ `${ seasonId }-${ course.id }` }
+						key={ `${ seasonId }-${ course.id }-${ savedAt[ course.id ] || 0 }` }
 						course={ course }
 						locations={ locations }
 						schedules={ schByCourse[ course.id ] || [] }

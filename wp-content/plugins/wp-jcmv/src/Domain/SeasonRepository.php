@@ -81,6 +81,11 @@ final class SeasonRepository {
 			return new WP_Error( 'jcmv_season_exists', sprintf( 'La saison %d-%d existe déjà.', $start_year, $start_year + 1 ) );
 		}
 
+		$bornes = self::check_amounts( $licence, $adhesion );
+		if ( is_wp_error( $bornes ) ) {
+			return $bornes;
+		}
+
 		$now = current_time( 'mysql' );
 		$ok  = $wpdb->insert(
 			Schema::table( 'season' ),
@@ -116,7 +121,18 @@ final class SeasonRepository {
 			return new WP_Error( 'jcmv_season_not_found', 'Saison introuvable.' );
 		}
 
-		$wpdb->update(
+		/*
+		 * Bornes vérifiées ici et pas seulement dans le schéma REST : une
+		 * licence négative rendue par le bloc frais-fixes est un problème de
+		 * données, pas de transport. La règle doit tenir quelle que soit
+		 * l'interface d'écriture.
+		 */
+		$bornes = self::check_amounts( $licence, $adhesion );
+		if ( is_wp_error( $bornes ) ) {
+			return $bornes;
+		}
+
+		$updated = $wpdb->update(
 			Schema::table( 'season' ),
 			array(
 				'licence_amount'  => $licence,
@@ -130,6 +146,16 @@ final class SeasonRepository {
 			array( '%d' )
 		);
 
+		/*
+		 * `false` seul est une erreur : $wpdb->update() renvoie 0 quand la
+		 * requête a réussi sans rien changer — cas courant ici, le bureau
+		 * réenregistrant des frais identiques. Traiter le 0 comme un échec
+		 * ferait échouer une saisie parfaitement valide.
+		 */
+		if ( false === $updated ) {
+			return new WP_Error( 'jcmv_db_error', $wpdb->last_error ?: 'Écriture impossible.' );
+		}
+
 		return true;
 	}
 
@@ -139,7 +165,6 @@ final class SeasonRepository {
 	 * @return true|WP_Error
 	 */
 	public function activate( int $id ) {
-		global $wpdb;
 		$table = Schema::table( 'season' );
 
 		$season = $this->find( $id );
@@ -152,21 +177,22 @@ final class SeasonRepository {
 
 		$now = current_time( 'mysql' );
 
-		$wpdb->query( 'START TRANSACTION' );
+		return Transaction::run(
+			static function () use ( $table, $id, $now ) {
+				global $wpdb;
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$archived = $wpdb->query( $wpdb->prepare( "UPDATE {$table} SET status = 'archived', updated_at = %s WHERE status = 'active' AND id != %d", $now, $id ) );
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$activated = $wpdb->query( $wpdb->prepare( "UPDATE {$table} SET status = 'active', updated_at = %s WHERE id = %d", $now, $id ) );
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$archived = $wpdb->query( $wpdb->prepare( "UPDATE {$table} SET status = 'archived', updated_at = %s WHERE status = 'active' AND id != %d", $now, $id ) );
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$activated = $wpdb->query( $wpdb->prepare( "UPDATE {$table} SET status = 'active', updated_at = %s WHERE id = %d", $now, $id ) );
 
-		if ( false === $archived || false === $activated ) {
-			$wpdb->query( 'ROLLBACK' );
-			return new WP_Error( 'jcmv_db_error', $wpdb->last_error ?: 'Activation impossible.' );
-		}
+				if ( false === $archived || false === $activated ) {
+					return new WP_Error( 'jcmv_db_error', $wpdb->last_error ?: 'Activation impossible.' );
+				}
 
-		$wpdb->query( 'COMMIT' );
-
-		return true;
+				return true;
+			}
+		);
 	}
 
 	/**
@@ -176,8 +202,6 @@ final class SeasonRepository {
 	 * @return int|WP_Error ID de la nouvelle saison.
 	 */
 	public function prepare_next( int $source_id ) {
-		global $wpdb;
-
 		$source = $this->find( $source_id );
 		if ( ! $source ) {
 			return new WP_Error( 'jcmv_season_not_found', 'Saison source introuvable.' );
@@ -190,54 +214,54 @@ final class SeasonRepository {
 
 		$now = current_time( 'mysql' );
 
-		$wpdb->query( 'START TRANSACTION' );
+		return Transaction::run(
+			function () use ( $source, $new_year, $source_id, $now ) {
+				global $wpdb;
 
-		$created = $this->create(
-			$new_year,
-			(float) $source->licence_amount,
-			(float) $source->adhesion_amount,
-			(string) $source->licence_note,
-			(string) $source->adhesion_note
+				$created = $this->create(
+					$new_year,
+					(float) $source->licence_amount,
+					(float) $source->adhesion_amount,
+					(string) $source->licence_note,
+					(string) $source->adhesion_note
+				);
+
+				if ( is_wp_error( $created ) ) {
+					return $created;
+				}
+
+				$schedule = Schema::table( 'schedule' );
+				$pricing  = Schema::table( 'pricing' );
+
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$dup_schedule = $wpdb->query( $wpdb->prepare(
+					"INSERT INTO {$schedule} (season_id, course_id, location_id, weekday, start_time, end_time, note, sort_order, created_at, updated_at)
+					 SELECT %d, course_id, location_id, weekday, start_time, end_time, note, sort_order, %s, %s
+					 FROM {$schedule} WHERE season_id = %d",
+					$created,
+					$now,
+					$now,
+					$source_id
+				) );
+
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$dup_pricing = $wpdb->query( $wpdb->prepare(
+					"INSERT INTO {$pricing} (season_id, course_id, label, amount, period, note, sort_order, created_at, updated_at)
+					 SELECT %d, course_id, label, amount, period, note, sort_order, %s, %s
+					 FROM {$pricing} WHERE season_id = %d",
+					$created,
+					$now,
+					$now,
+					$source_id
+				) );
+
+				if ( false === $dup_schedule || false === $dup_pricing ) {
+					return new WP_Error( 'jcmv_db_error', $wpdb->last_error ?: 'Duplication impossible.' );
+				}
+
+				return $created;
+			}
 		);
-
-		if ( is_wp_error( $created ) ) {
-			$wpdb->query( 'ROLLBACK' );
-			return $created;
-		}
-
-		$schedule = Schema::table( 'schedule' );
-		$pricing  = Schema::table( 'pricing' );
-
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$dup_schedule = $wpdb->query( $wpdb->prepare(
-			"INSERT INTO {$schedule} (season_id, course_id, location_id, weekday, start_time, end_time, note, sort_order, created_at, updated_at)
-			 SELECT %d, course_id, location_id, weekday, start_time, end_time, note, sort_order, %s, %s
-			 FROM {$schedule} WHERE season_id = %d",
-			$created,
-			$now,
-			$now,
-			$source_id
-		) );
-
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$dup_pricing = $wpdb->query( $wpdb->prepare(
-			"INSERT INTO {$pricing} (season_id, course_id, label, amount, period, note, sort_order, created_at, updated_at)
-			 SELECT %d, course_id, label, amount, period, note, sort_order, %s, %s
-			 FROM {$pricing} WHERE season_id = %d",
-			$created,
-			$now,
-			$now,
-			$source_id
-		) );
-
-		if ( false === $dup_schedule || false === $dup_pricing ) {
-			$wpdb->query( 'ROLLBACK' );
-			return new WP_Error( 'jcmv_db_error', $wpdb->last_error ?: 'Duplication impossible.' );
-		}
-
-		$wpdb->query( 'COMMIT' );
-
-		return $created;
 	}
 
 	/**
@@ -246,8 +270,6 @@ final class SeasonRepository {
 	 * @return true|WP_Error
 	 */
 	public function delete( int $id ) {
-		global $wpdb;
-
 		$season = $this->find( $id );
 		if ( ! $season ) {
 			return new WP_Error( 'jcmv_season_not_found', 'Saison introuvable.' );
@@ -256,18 +278,38 @@ final class SeasonRepository {
 			return new WP_Error( 'jcmv_season_not_draft', 'Seule une saison brouillon peut être supprimée.' );
 		}
 
-		$wpdb->query( 'START TRANSACTION' );
+		return Transaction::run(
+			static function () use ( $id ) {
+				global $wpdb;
 
-		$wpdb->delete( Schema::table( 'schedule' ), array( 'season_id' => $id ), array( '%d' ) );
-		$wpdb->delete( Schema::table( 'pricing' ), array( 'season_id' => $id ), array( '%d' ) );
-		$deleted = $wpdb->delete( Schema::table( 'season' ), array( 'id' => $id ), array( '%d' ) );
+				$wpdb->delete( Schema::table( 'schedule' ), array( 'season_id' => $id ), array( '%d' ) );
+				$wpdb->delete( Schema::table( 'pricing' ), array( 'season_id' => $id ), array( '%d' ) );
+				$deleted = $wpdb->delete( Schema::table( 'season' ), array( 'id' => $id ), array( '%d' ) );
 
-		if ( false === $deleted ) {
-			$wpdb->query( 'ROLLBACK' );
-			return new WP_Error( 'jcmv_db_error', $wpdb->last_error ?: 'Suppression impossible.' );
+				if ( false === $deleted ) {
+					return new WP_Error( 'jcmv_db_error', $wpdb->last_error ?: 'Suppression impossible.' );
+				}
+
+				return true;
+			}
+		);
+	}
+
+	/**
+	 * Montants dans les bornes de la colonne DECIMAL(8,2).
+	 *
+	 * @param float ...$amounts Montants à contrôler.
+	 * @return true|WP_Error
+	 */
+	private static function check_amounts( float ...$amounts ) {
+		foreach ( $amounts as $amount ) {
+			if ( $amount < 0 || $amount > Schema::AMOUNT_MAX ) {
+				return new WP_Error(
+					'jcmv_invalid_amount',
+					sprintf( 'Montant hors bornes : attendu entre 0 et %s.', Money::format( Schema::AMOUNT_MAX ) )
+				);
+			}
 		}
-
-		$wpdb->query( 'COMMIT' );
 
 		return true;
 	}

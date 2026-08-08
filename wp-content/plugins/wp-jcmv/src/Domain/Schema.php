@@ -44,6 +44,15 @@ final class Schema {
 	public const SEASON_STATUSES = array( 'draft', 'active', 'archived' );
 
 	/**
+	 * Plafond des colonnes de montants, imposé par leur type DECIMAL(8,2).
+	 *
+	 * Au-delà, MySQL rejette l'écriture : sans borne applicative, l'erreur SQL
+	 * remonterait telle quelle au bureau. La constante vit ici parce que c'est
+	 * le schéma qui la dicte — la changer suppose une migration de colonne.
+	 */
+	public const AMOUNT_MAX = 999999.99;
+
+	/**
 	 * Rejoue les migrations si la version stockée est en retard.
 	 */
 	public static function maybe_migrate(): void {

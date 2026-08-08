@@ -42,8 +42,19 @@ final class ScheduleRepository {
 	 * @return true|WP_Error
 	 */
 	public function replace_for_course( int $season_id, int $course_id, array $rows ) {
-		global $wpdb;
 		$table = Schema::table( 'schedule' );
+
+		/*
+		 * Cibles vérifiées avant toute écriture (ADR-001) : sans cela, un
+		 * season_id ou un course_id arbitraire produit des lignes que rien
+		 * n'affiche, que la suppression de saison ne ramasse pas, et que
+		 * DeletionGuard prend pour des références légitimes.
+		 */
+		foreach ( array( Integrity::season( $season_id ), Integrity::course( $course_id ) ) as $cible ) {
+			if ( is_wp_error( $cible ) ) {
+				return $cible;
+			}
+		}
 
 		$clean = array();
 		foreach ( array_values( $rows ) as $i => $row ) {
@@ -56,49 +67,54 @@ final class ScheduleRepository {
 
 		$now = current_time( 'mysql' );
 
-		$wpdb->query( 'START TRANSACTION' );
+		/*
+		 * Transaction déléguée : si un appelant en a déjà ouvert une — le
+		 * contrôleur qui écrit créneaux ET tarifs d'un cours d'un seul geste —
+		 * celle-ci s'y fond au lieu de la valider prématurément.
+		 */
+		return Transaction::run(
+			static function () use ( $table, $season_id, $course_id, $clean, $now ) {
+				global $wpdb;
 
-		$deleted = $wpdb->delete(
-			$table,
-			array(
-				'season_id' => $season_id,
-				'course_id' => $course_id,
-			),
-			array( '%d', '%d' )
-		);
+				$deleted = $wpdb->delete(
+					$table,
+					array(
+						'season_id' => $season_id,
+						'course_id' => $course_id,
+					),
+					array( '%d', '%d' )
+				);
 
-		if ( false === $deleted ) {
-			$wpdb->query( 'ROLLBACK' );
-			return new WP_Error( 'jcmv_db_error', $wpdb->last_error ?: 'Écriture impossible.' );
-		}
+				if ( false === $deleted ) {
+					return new WP_Error( 'jcmv_db_error', $wpdb->last_error ?: 'Écriture impossible.' );
+				}
 
-		foreach ( $clean as $i => $row ) {
-			$ok = $wpdb->insert(
-				$table,
-				array(
-					'season_id'   => $season_id,
-					'course_id'   => $course_id,
-					'location_id' => $row['location_id'],
-					'weekday'     => $row['weekday'],
-					'start_time'  => $row['start_time'],
-					'end_time'    => $row['end_time'],
-					'note'        => $row['note'],
-					'sort_order'  => $row['sort_order'] ?? $i,
-					'created_at'  => $now,
-					'updated_at'  => $now,
-				),
-				array( '%d', '%d', '%d', '%d', '%s', '%s', '%s', '%d', '%s', '%s' )
-			);
+				foreach ( $clean as $i => $row ) {
+					$ok = $wpdb->insert(
+						$table,
+						array(
+							'season_id'   => $season_id,
+							'course_id'   => $course_id,
+							'location_id' => $row['location_id'],
+							'weekday'     => $row['weekday'],
+							'start_time'  => $row['start_time'],
+							'end_time'    => $row['end_time'],
+							'note'        => $row['note'],
+							'sort_order'  => $row['sort_order'] ?? $i,
+							'created_at'  => $now,
+							'updated_at'  => $now,
+						),
+						array( '%d', '%d', '%d', '%d', '%s', '%s', '%s', '%d', '%s', '%s' )
+					);
 
-			if ( false === $ok ) {
-				$wpdb->query( 'ROLLBACK' );
-				return new WP_Error( 'jcmv_db_error', $wpdb->last_error ?: 'Écriture impossible.' );
+					if ( false === $ok ) {
+						return new WP_Error( 'jcmv_db_error', $wpdb->last_error ?: 'Écriture impossible.' );
+					}
+				}
+
+				return true;
 			}
-		}
-
-		$wpdb->query( 'COMMIT' );
-
-		return true;
+		);
 	}
 
 	/**
@@ -113,6 +129,18 @@ final class ScheduleRepository {
 		if ( $location_id <= 0 ) {
 			return new WP_Error( 'jcmv_invalid_schedule', sprintf( 'Créneau %d : lieu manquant.', $index + 1 ) );
 		}
+
+		// Un lieu renseigné mais qui n'est pas un jcmv_lieu passait jusqu'ici :
+		// le front appelait ensuite get_the_title() dessus et affichait le titre
+		// de n'importe quel contenu, page comprise.
+		$lieu = Integrity::location( $location_id );
+		if ( is_wp_error( $lieu ) ) {
+			return new WP_Error(
+				'jcmv_invalid_schedule',
+				sprintf( 'Créneau %d : %s', $index + 1, $lieu->get_error_message() )
+			);
+		}
+
 		if ( $weekday < 1 || $weekday > 7 ) {
 			return new WP_Error( 'jcmv_invalid_schedule', sprintf( 'Créneau %d : jour invalide (1 = lundi … 7 = dimanche).', $index + 1 ) );
 		}

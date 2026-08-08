@@ -16,6 +16,7 @@
  * @var WP_Block $block      Instance du bloc.
  */
 
+use JCMV\Domain\Money;
 use JCMV\Domain\ProductRepository;
 use JCMV\Registration\ImageSizes;
 
@@ -159,7 +160,7 @@ $jcmv_wrapper = get_block_wrapper_attributes(
 
 					<p class="jcmv-shop__price">
 						<?php if ( $jcmv_produit['prix'] > 0 ) : ?>
-							<?php echo esc_html( ProductRepository::format_price( $jcmv_produit['prix'] ) ); ?>
+							<?php echo esc_html( Money::format( $jcmv_produit['prix'] ) ); ?>
 						<?php else : ?>
 							<span class="jcmv-shop__price-ask"><?php esc_html_e( 'Prix sur demande', 'wp-jcmv' ); ?></span>
 						<?php endif; ?>

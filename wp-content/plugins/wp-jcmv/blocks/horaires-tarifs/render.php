@@ -10,6 +10,7 @@
  */
 
 use JCMV\Domain\AgeCalculator;
+use JCMV\Domain\Money;
 use JCMV\Domain\PricingRepository;
 use JCMV\Domain\ScheduleRepository;
 use JCMV\Domain\SeasonRepository;
@@ -25,13 +26,24 @@ if ( ! $jcmv_season ) {
 	return;
 }
 
+/*
+ * `update_post_meta_cache => false` : aucune postmeta n'est lue sur un cours
+ * (titre, menu_order et termes suffisent), inutile d'amorcer ce cache.
+ *
+ * Les deux autres amorçages de WP_Query sont en revanche laissés actifs, et
+ * font le gros du travail : le cache de termes évite une requête par
+ * get_the_terms() ci-dessous, et WP_Query met au passage les métas de ces
+ * termes en file de chargement différé — le premier get_term_meta() les
+ * charge donc toutes en une requête.
+ */
 $jcmv_courses = get_posts(
 	array(
-		'post_type'      => PostTypes::COURS,
-		'post_status'    => 'publish',
-		'numberposts'    => 100,
-		'orderby'        => 'menu_order title',
-		'order'          => 'ASC',
+		'post_type'              => PostTypes::COURS,
+		'post_status'            => 'publish',
+		'numberposts'            => 100,
+		'orderby'                => 'menu_order title',
+		'order'                  => 'ASC',
+		'update_post_meta_cache' => false,
 	)
 );
 
@@ -51,18 +63,34 @@ foreach ( ( new PricingRepository() )->for_season( (int) $jcmv_season->id ) as $
 	$jcmv_pricing[ (int) $jcmv_row->course_id ][] = $jcmv_row;
 }
 
+/*
+ * Les titres des lieux sont lus une fois par créneau, plus bas. Sans amorçage,
+ * chaque lieu encore absent du cache coûte une requête à son premier
+ * get_the_title() — le cache d'objets absorbe les suivantes, si bien que le
+ * coût réel est le nombre de dojos DISTINCTS, pas le nombre de créneaux.
+ * Deux ou trois requêtes dans un club, donc, et non une par ligne du tableau.
+ *
+ * Ça reste une requête de trop chacune, et le jour où le club pratique dans
+ * six gymnases, rien n'est à revoir. Les métas ne sont pas amorcées : l'adresse
+ * du lieu ne sert pas à ce bloc.
+ */
+$jcmv_lieux = array();
+foreach ( $jcmv_schedules as $jcmv_rows ) {
+	foreach ( $jcmv_rows as $jcmv_row ) {
+		$jcmv_lieux[] = (int) $jcmv_row->location_id;
+	}
+}
+$jcmv_lieux = array_values( array_unique( array_filter( $jcmv_lieux ) ) );
+
+if ( $jcmv_lieux ) {
+	_prime_post_caches( $jcmv_lieux, false, false );
+}
+
 /**
  * « 17:30:00 » → « 17h30 ».
  */
 $jcmv_format_time = static function ( string $time ): string {
 	return str_replace( ':', 'h', substr( $time, 0, 5 ) );
-};
-
-/**
- * « 135.00 » → « 135,00 € ».
- */
-$jcmv_format_price = static function ( float $amount ): string {
-	return number_format( $amount, 2, ',', ' ' ) . ' €';
 };
 
 echo '<div class="jcmv-schedule-cards">';
@@ -123,12 +151,14 @@ foreach ( $jcmv_courses as $jcmv_course ) {
 			echo '<br><small>' . esc_html( $jcmv_price->note ) . '</small>';
 		}
 		echo '</span>';
-		echo '<span class="jcmv-schedule-card__price-tag">' . esc_html( $jcmv_format_price( (float) $jcmv_price->amount ) ) . '</span>';
+		echo '<span class="jcmv-schedule-card__price-tag">' . esc_html( Money::format( $jcmv_price->amount ) ) . '</span>';
 		echo '</div>';
 	}
 
+	// home_url() plutôt qu'un chemin absolu : « /inscription » casserait sur une
+	// installation en sous-répertoire (et sur l'environnement de recette).
 	echo '<div class="jcmv-schedule-card__actions">';
-	echo '<a class="wp-block-button__link wp-element-button" href="/inscription">' . esc_html__( 'Je m\'inscris', 'wp-jcmv' ) . '</a>';
+	echo '<a class="wp-block-button__link wp-element-button" href="' . esc_url( home_url( '/inscription' ) ) . '">' . esc_html__( 'Je m\'inscris', 'wp-jcmv' ) . '</a>';
 	echo '</div>';
 
 	echo '</article>';

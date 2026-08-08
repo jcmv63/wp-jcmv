@@ -27,6 +27,21 @@ final class Updater {
 
 	private const CACHE_KEY = 'jcmv_plugin_update_manifest';
 
+	/** Durée de cache d'un manifeste correctement récupéré. */
+	private const CACHE_TTL = 6 * HOUR_IN_SECONDS;
+
+	/**
+	 * Durée de cache après un échec — bien plus courte.
+	 *
+	 * L'échec doit être mis en cache : sans cela, chaque vérification de mise à
+	 * jour relancerait un appel réseau de 10 secondes vers un service qu'on sait
+	 * indisponible. Mais le mettre en cache 6 h comme un succès faisait qu'une
+	 * coupure de trente secondes chez GitHub masquait les mises à jour pendant
+	 * six heures. Le cache d'un échec protège de l'insistance, il ne doit pas
+	 * prolonger la panne.
+	 */
+	private const CACHE_TTL_FAILURE = 15 * MINUTE_IN_SECONDS;
+
 	public static function register(): void {
 		add_filter( 'pre_set_site_transient_update_plugins', array( self::class, 'inject_update' ) );
 		add_filter( 'plugins_api', array( self::class, 'plugin_details' ), 10, 3 );
@@ -99,7 +114,7 @@ final class Updater {
 	}
 
 	/**
-	 * Manifeste JSON, mis en cache 6 h.
+	 * Manifeste JSON, mis en cache : 6 h en cas de succès, 15 min sinon.
 	 */
 	private static function manifest(): array {
 		$cached = get_transient( self::CACHE_KEY );
@@ -117,7 +132,16 @@ final class Updater {
 			}
 		}
 
-		set_transient( self::CACHE_KEY, $manifest, 6 * HOUR_IN_SECONDS );
+		/*
+		 * Un manifeste sans version est un échec, quelle qu'en soit la cause :
+		 * réseau coupé, 404, JSON malformé, ou branche `updates` pas encore
+		 * publiée. On le distingue du succès sur cette seule clé, celle dont
+		 * inject_update() a besoin — inutile de multiplier les codes de retour
+		 * pour un traitement identique.
+		 */
+		$ttl = empty( $manifest['version'] ) ? self::CACHE_TTL_FAILURE : self::CACHE_TTL;
+
+		set_transient( self::CACHE_KEY, $manifest, $ttl );
 
 		return $manifest;
 	}

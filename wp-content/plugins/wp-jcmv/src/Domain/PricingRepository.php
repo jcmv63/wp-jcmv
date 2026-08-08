@@ -41,20 +41,42 @@ final class PricingRepository {
 	 * @return true|WP_Error
 	 */
 	public function replace_for_course( int $season_id, int $course_id, array $rows ) {
-		global $wpdb;
 		$table = Schema::table( 'pricing' );
+
+		// Mêmes gardes que ScheduleRepository, pour la même raison (ADR-001).
+		foreach ( array( Integrity::season( $season_id ), Integrity::course( $course_id ) ) as $cible ) {
+			if ( is_wp_error( $cible ) ) {
+				return $cible;
+			}
+		}
 
 		$clean = array();
 		foreach ( array_values( $rows ) as $i => $row ) {
 			$row    = (array) $row;
-			$label  = sanitize_text_field( (string) ( $row['label'] ?? '' ) );
-			$amount = (float) ( $row['amount'] ?? 0 );
+			$label = sanitize_text_field( (string) ( $row['label'] ?? '' ) );
+
+			/*
+			 * Virgule décimale acceptée, comme PostTypes::sanitize_amount() :
+			 * un clavier français produit « 24,50 », qu'un (float) nu tronque
+			 * à 24 sans rien signaler. On ne réutilise pas sanitize_amount()
+			 * ici, qui ramène les négatifs à zéro : le contrôle ci-dessous doit
+			 * pouvoir les refuser explicitement plutôt que les absorber.
+			 */
+			$amount = (float) str_replace( ',', '.', (string) ( $row['amount'] ?? 0 ) );
 
 			if ( '' === $label ) {
 				return new WP_Error( 'jcmv_invalid_pricing', sprintf( 'Tarif %d : libellé manquant.', $i + 1 ) );
 			}
 			if ( $amount < 0 ) {
 				return new WP_Error( 'jcmv_invalid_pricing', sprintf( 'Tarif %d : montant négatif.', $i + 1 ) );
+			}
+			// DECIMAL(8,2) : au-delà, MySQL rejette la ligne. Un message clair
+			// vaut mieux qu'une erreur SQL brute remontée dans l'interface.
+			if ( $amount > Schema::AMOUNT_MAX ) {
+				return new WP_Error(
+					'jcmv_invalid_pricing',
+					sprintf( 'Tarif %d : montant supérieur au maximum autorisé (%s).', $i + 1, Money::format( Schema::AMOUNT_MAX ) )
+				);
 			}
 
 			$clean[] = array(
@@ -68,45 +90,47 @@ final class PricingRepository {
 
 		$now = current_time( 'mysql' );
 
-		$wpdb->query( 'START TRANSACTION' );
+		// Même délégation que ScheduleRepository : les deux lots d'un cours
+		// doivent pouvoir tenir dans une seule transaction (revue §1.3).
+		return Transaction::run(
+			static function () use ( $table, $season_id, $course_id, $clean, $now ) {
+				global $wpdb;
 
-		$deleted = $wpdb->delete(
-			$table,
-			array(
-				'season_id' => $season_id,
-				'course_id' => $course_id,
-			),
-			array( '%d', '%d' )
-		);
-
-		if ( false === $deleted ) {
-			$wpdb->query( 'ROLLBACK' );
-			return new WP_Error( 'jcmv_db_error', $wpdb->last_error ?: 'Écriture impossible.' );
-		}
-
-		foreach ( $clean as $row ) {
-			$ok = $wpdb->insert(
-				$table,
-				array_merge(
+				$deleted = $wpdb->delete(
+					$table,
 					array(
-						'season_id'  => $season_id,
-						'course_id'  => $course_id,
-						'created_at' => $now,
-						'updated_at' => $now,
+						'season_id' => $season_id,
+						'course_id' => $course_id,
 					),
-					$row
-				),
-				array( '%d', '%d', '%s', '%s', '%s', '%f', '%s', '%s', '%d' )
-			);
+					array( '%d', '%d' )
+				);
 
-			if ( false === $ok ) {
-				$wpdb->query( 'ROLLBACK' );
-				return new WP_Error( 'jcmv_db_error', $wpdb->last_error ?: 'Écriture impossible.' );
+				if ( false === $deleted ) {
+					return new WP_Error( 'jcmv_db_error', $wpdb->last_error ?: 'Écriture impossible.' );
+				}
+
+				foreach ( $clean as $row ) {
+					$ok = $wpdb->insert(
+						$table,
+						array_merge(
+							array(
+								'season_id'  => $season_id,
+								'course_id'  => $course_id,
+								'created_at' => $now,
+								'updated_at' => $now,
+							),
+							$row
+						),
+						array( '%d', '%d', '%s', '%s', '%s', '%f', '%s', '%s', '%d' )
+					);
+
+					if ( false === $ok ) {
+						return new WP_Error( 'jcmv_db_error', $wpdb->last_error ?: 'Écriture impossible.' );
+					}
+				}
+
+				return true;
 			}
-		}
-
-		$wpdb->query( 'COMMIT' );
-
-		return true;
+		);
 	}
 }

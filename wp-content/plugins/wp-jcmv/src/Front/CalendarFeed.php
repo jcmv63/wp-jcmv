@@ -325,6 +325,33 @@ final class CalendarFeed {
 	 * @param string[] $slugs  Catégories demandées.
 	 */
 	private static function send( array $events, array $slugs ): void {
+		/*
+		 * Validateurs calculés AVANT le corps : c'est tout l'intérêt du 304.
+		 * generate_ical_feed() est de loin l'appel le plus coûteux de cette
+		 * route, et c'est la seule route du plugin qu'un logiciel relève en
+		 * boucle. La calculer pour la jeter serait payer le prix fort pour
+		 * n'économiser que la bande passante.
+		 */
+		$last_modified = self::last_modified( $events );
+
+		/*
+		 * JCMV_VERSION entre dans l'empreinte : une mise à jour qui change la
+		 * composition du flux (nouvelle fenêtre d'historique, autre nom de
+		 * calendrier) doit invalider les caches clients, même si aucun
+		 * événement n'a bougé depuis.
+		 */
+		$etag = '"' . md5( $last_modified . '|' . implode( '+', $slugs ) . '|' . count( $events ) . '|' . JCMV_VERSION ) . '"';
+
+		// Les validateurs accompagnent un 304 comme un 200 : envoyés d'abord.
+		header( 'Cache-Control: public, max-age=' . self::CACHE_TTL );
+		header( 'Last-Modified: ' . gmdate( 'D, d M Y H:i:s', $last_modified ) . ' GMT' );
+		header( 'ETag: ' . $etag );
+
+		if ( self::client_is_up_to_date( $etag, $last_modified ) ) {
+			status_header( 304 );
+			exit;
+		}
+
 		$name = self::calendar_name( $slugs );
 
 		$rename = static fn(): string => $name;
@@ -344,18 +371,59 @@ final class CalendarFeed {
 			$body = self::empty_calendar( $name );
 		}
 
-		$last_modified = self::last_modified( $events );
-
 		header( 'Content-Type: text/calendar; charset=UTF-8' );
 		header( 'Content-Disposition: attachment; filename="' . self::filename( $slugs ) . '"' );
-		header( 'Cache-Control: public, max-age=' . self::CACHE_TTL );
-		header( 'Last-Modified: ' . gmdate( 'D, d M Y H:i:s', $last_modified ) . ' GMT' );
-		header( 'ETag: "' . md5( $last_modified . '|' . implode( '+', $slugs ) . '|' . count( $events ) ) . '"' );
 		// Un fichier .ics n'a rien à faire dans un index de recherche.
 		header( 'X-Robots-Tag: noindex' );
 
 		echo $body; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- flux ICS, échappement RFC 5545 fait par TEC.
 		exit;
+	}
+
+	/**
+	 * Le client détient-il déjà cette version du flux ?
+	 *
+	 * RFC 9110 §13.1.3 : `If-None-Match` prime sur `If-Modified-Since`. Si le
+	 * client présente une empreinte, elle fait autorité — on ne retombe pas sur
+	 * la date, sous peine de renvoyer un 304 à un client qui détient autre
+	 * chose.
+	 *
+	 * @param string $etag          Empreinte du flux, guillemets compris.
+	 * @param int    $last_modified Horodatage de dernière modification.
+	 */
+	private static function client_is_up_to_date( string $etag, int $last_modified ): bool {
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- comparé octet à octet, jamais affiché ni stocké.
+		$if_none_match = isset( $_SERVER['HTTP_IF_NONE_MATCH'] ) ? trim( (string) wp_unslash( $_SERVER['HTTP_IF_NONE_MATCH'] ) ) : '';
+
+		if ( '' !== $if_none_match ) {
+			foreach ( explode( ',', $if_none_match ) as $candidat ) {
+				$candidat = trim( $candidat );
+
+				// Un intermédiaire peut marquer l'empreinte comme validateur
+				// faible (`W/"…"`) : la comparaison reste pertinente ici, le
+				// flux ne variant pas octet à octet à empreinte égale.
+				if ( str_starts_with( $candidat, 'W/' ) ) {
+					$candidat = substr( $candidat, 2 );
+				}
+
+				if ( '*' === $candidat || hash_equals( $etag, $candidat ) ) {
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- passé à strtotime(), jamais affiché.
+		$depuis = isset( $_SERVER['HTTP_IF_MODIFIED_SINCE'] ) ? (string) wp_unslash( $_SERVER['HTTP_IF_MODIFIED_SINCE'] ) : '';
+
+		if ( '' === $depuis ) {
+			return false;
+		}
+
+		$horodatage = strtotime( $depuis );
+
+		return false !== $horodatage && $last_modified <= $horodatage;
 	}
 
 	/**
