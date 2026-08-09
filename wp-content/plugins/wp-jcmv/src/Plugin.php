@@ -41,6 +41,7 @@ final class Plugin {
 		Rest\SeasonsController::register();
 		Front\Blocks::register();
 		Front\CalendarFeed::register();
+		Front\EventsWidget::register();
 
 		// Priorité tardive : les règles de CalendarFeed sont ajoutées sur `init`
 		// en priorité par défaut, elles doivent exister avant le flush.

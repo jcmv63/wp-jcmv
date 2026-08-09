@@ -583,6 +583,13 @@ b {
 	line-height: 1.3;
 }
 
+.jcmv-card--mini .wp-block-post-title a {
+    color: inherit;
+}
+.jcmv-card--mini .wp-block-post-title a:hover {
+    color: var(--wp--preset--color--accent-2);
+}
+
 /* Pagination (charte §05) */
 .jcmv-pagination .wp-block-query-pagination-numbers .page-numbers {
 	display: inline-flex;
@@ -823,4 +830,245 @@ b {
 .tribe-common--breakpoint-medium.tribe-events.tribe-events .tribe-events-l-container {
 	padding-top: var(--wp--preset--spacing--50);
 	padding-bottom: var(--wp--preset--spacing--60);
+}
+
+/* ---------- Widget « Événements à venir » (bloc Events List) ---------- */
+
+/*
+ * Seconde exception à la règle « variables, pas sélecteurs » : ces deux
+ * corrections portent sur la *mise en page* du widget, pas sur sa palette.
+ * Le widget est dessiné pour une colonne latérale étroite ; posé en pleine
+ * largeur sur l'accueil, son titre reste calibré comme un titre de sidebar
+ * et son lien de sortie comme un lien de texte. Aucune variable `--tec-*`
+ * ne permet de corriger ça : les deux composants consomment des tokens
+ * (`--tec-font-size-3`, `--tec-color-link-accent`) partagés avec le reste
+ * du plugin, qu'on déréglerait ailleurs en les redéfinissant sur `:root`.
+ *
+ * Les classes visées portent le préfixe de bloc `__header-title` /
+ * `__view-more`, stables depuis TEC 5.2. Vérifié sur TEC 6.17.2.
+ */
+
+/*
+ * Titre du widget — aligné sur les H2 du site.
+ *
+ * Le gabarit pose `tribe-common-h6 tribe-common-h--alt` sur le `<h2>`, ce qui
+ * lui vaut Archivo 16 px en graisse normale et `text-transform: none`. Le
+ * style de `elements.heading` du theme.json, lui, sort en
+ * `:root :where(h1,…,h6)` — 0,1,0, écrasé par les 0,2,0 du plugin. D'où la
+ * reprise ici des quatre propriétés, avec les mêmes tokens que theme.json.
+ *
+ * Spécificité, même mécanique que le conteneur ci-dessus : les règles de base
+ * sont en 0,2,0 (`.tribe-common .tribe-common-h6`) et la taille de police est
+ * re-posée en 0,3,0 pour le grand écran
+ * (`.tribe-common--breakpoint-medium.tribe-common .tribe-common-h6`). Chaque
+ * sélecteur monte donc d'un cran au-dessus de son homologue.
+ *
+ * `line-height: inherit` plutôt qu'une valeur : le `<header>` parent ne
+ * définit rien, la valeur remonte donc jusqu'au 1.65 du corps de page — soit
+ * exactement ce dont hérite un H2 ordinaire. Une constante en dur ici
+ * divergerait le jour où le theme.json bouge.
+ */
+.tribe-common.tribe-common .tribe-events-widget-events-list__header-title,
+.tribe-common--breakpoint-medium.tribe-common.tribe-common .tribe-events-widget-events-list__header-title {
+	font-family: var(--wp--preset--font-family--display);
+	font-size: var(--wp--preset--font-size--xx-large);
+	font-weight: 600;
+	line-height: inherit;
+	text-transform: uppercase;
+}
+
+/*
+ * Centrage du lien de sortie, depuis son conteneur : le `<a>` est en ligne.
+ *
+ * `display: block` n'est pas décoratif. Le conteneur reçoit aussi la classe
+ * `wp-block-button` (voir `JCMV\Front\EventsWidget`), que WordPress passe en
+ * `inline-block` — un conteneur rétracté sur son contenu, dans lequel
+ * `text-align: center` n'a plus rien à centrer. Dans les patterns du thème, ce
+ * rôle est tenu par le `.wp-block-buttons` parent, absent ici : le gabarit de
+ * TEC n'a qu'un seul niveau de `<div>` et un filtre HTML ne peut pas en
+ * insérer un second.
+ */
+.tribe-events-widget .tribe-events-widget-events-list__view-more {
+	display: block;
+	text-align: center;
+}
+
+/*
+ * Le lien de sortie porte désormais le balisage exact des boutons outline du
+ * thème — `div.wp-block-button.is-style-outline` contenant
+ * `a.wp-block-button__link.wp-element-button` — posé par
+ * `JCMV\Front\EventsWidget` (plugin wp-jcmv), qui retire au passage les deux
+ * classes de TEC qui s'y opposaient.
+ *
+ * Fonte, taille, interlettrage, casse et rayon arrivent donc seuls depuis le
+ * theme.json. Restent trois propriétés à réparer, et la raison mérite d'être
+ * connue au-delà de ce bouton :
+ *
+ * WordPress publie TOUS les styles issus du theme.json en `:root :where(…)`,
+ * soit une spécificité de 0,1,0 — délibérément basse, pour que le contenu
+ * puisse les surcharger sans effort. TEC, lui, ouvre ses vues par un reset à
+ * la Meyer : `.tribe-common a, .tribe-common abbr, … { border: 0; padding: 0 }`,
+ * en 0,1,1. Et sa couleur de lien, `.tribe-common a`, également en 0,1,1.
+ *
+ * 0,1,1 l'emporte sur 0,1,0. Autrement dit, à l'intérieur d'une vue TEC,
+ * aucun style de theme.json portant sur `border`, `padding`, `margin` ou la
+ * couleur d'un lien n'a jamais eu la moindre chance de s'appliquer. Ce n'est
+ * pas propre au widget : la même règle vaudra pour tout bloc du thème déposé
+ * dans une vue du calendrier.
+ *
+ * D'où ces trois déclarations, reprises de `variations.outline` du theme.json.
+ * La couleur passe par le preset ; l'épaisseur et les gouttières sont des
+ * littéraux à tenir synchronisés. Ne rien ajouter d'autre ici : le reste
+ * arrive correctement, et toute divergence d'apparence entre ce bouton et les
+ * autres se règle dans le theme.json.
+ */
+.tribe-events-widget .tribe-events-widget-events-list__view-more > .wp-element-button {
+	padding: 11px 24px;
+	border: 2px solid currentColor;
+	color: var(--wp--preset--color--accent-1);
+}
+
+/*
+ * Survol, re-déclaré ici alors qu'il existe déjà plus haut
+ * (§ « Bouton outline : survol »). La règle générale est en 0,3,0 ; celle de
+ * repos ci-dessus l'est aussi et vient plus tard dans le fichier — elle
+ * l'emporterait donc au survol, et le bouton resterait rouge sur blanc.
+ */
+.tribe-events-widget .tribe-events-widget-events-list__view-more > .wp-element-button:hover,
+.tribe-events-widget .tribe-events-widget-events-list__view-more > .wp-element-button:focus-visible {
+	border-color: var(--wp--preset--color--accent-1);
+	background-color: var(--wp--preset--color--accent-1);
+	color: var(--wp--preset--color--base);
+}
+
+/*
+ * Pastille de date — vignette « éphéméride ».
+ *
+ * Le `<time>` de TEC empile deux `<span>` centrés sans boîte : un mois gris
+ * clair et un quantième noir, qui flottent dans la colonne sans signaler
+ * qu'ils forment une date. On leur donne un contour : bandeau anthracite pour
+ * le mois, corps blanc pour le quantième.
+ *
+ * Le balisage n'est pas touché — l'attribut `datetime` du `<time>` reste en
+ * place, la date demeure lisible par les machines. On ne fait que reboîter
+ * trois éléments existants.
+ *
+ * Le mois et le quantième passent en fonte display (Oswald), comme les titres
+ * du site, plutôt que l'Archivo par défaut de TEC. Retirer les deux lignes
+ * `font-family` suffirait à revenir à la fonte de corps.
+ */
+
+/*
+ * Gouttière entre la vignette et le bloc de texte.
+ *
+ * `column-gap` sur la ligne plutôt qu'une marge sur l'un des deux enfants : la
+ * ligne est déjà un conteneur flex (`tribe-common-g-row`), et la gouttière
+ * reste ainsi une propriété de la mise en page, pas des éléments.
+ *
+ * Le bloc de texte porte `width: 100%` (`tribe-common-g-col`) mais aussi
+ * `min-width: 0` : il se rétracte de lui-même de la valeur du gap, sans
+ * pousser la vignette hors de la ligne.
+ */
+.tribe-events-widget.tribe-events-widget .tribe-events-widget-events-list__event-row {
+	column-gap: var(--wp--preset--spacing--40);
+}
+
+/* Largeur de la vignette. TEC pose 64px en 0,2,0, puis 72px en 0,3,0 au-delà
+ * du breakpoint medium — d'où la paire de sélecteurs, comme plus haut. */
+.tribe-events-widget.tribe-events-widget .tribe-events-widget-events-list__event-date-tag,
+.tribe-common--breakpoint-medium.tribe-events-widget.tribe-events-widget .tribe-events-widget-events-list__event-date-tag {
+	width: 76px;
+}
+
+/*
+ * La boîte elle-même. `display: block` remplace le `flex-direction: column`
+ * de TEC, devenu inutile une fois les deux `<span>` en blocs.
+ *
+ * `height: auto` annule le `height: 100%` de TEC : la colonne est un élément
+ * flex étiré sur la hauteur de la ligne, la vignette y aurait été démesurée
+ * dès qu'un événement gagne une ligne de méta. Elle se dimensionne désormais
+ * sur son contenu et s'aligne en haut.
+ *
+ * `overflow: hidden` est ce qui fait suivre au bandeau les deux coins
+ * supérieurs arrondis.
+ */
+.tribe-events-widget.tribe-events-widget .tribe-events-widget-events-list__event-date-tag-datetime {
+	display: block;
+	height: auto;
+	overflow: hidden;
+	border: 2px solid var(--wp--preset--color--contrast);
+	border-radius: 8px;
+	background-color: var(--wp--preset--color--base);
+}
+
+/*
+ * TEC remonte chaque ligne de 4px (2px sous le breakpoint xsmall) pour serrer
+ * les deux `<span>` inline. Ces marges négatives décaleraient le quantième
+ * sous le bandeau : on les neutralise, le rythme vertical est repris par les
+ * `padding` ci-dessous.
+ *
+ * La règle xsmall est en 0,3,0 : le sélecteur correspondant monte donc à
+ * 0,4,0, faute de quoi le résultat dépendrait de l'ordre des feuilles.
+ */
+.tribe-events-widget.tribe-events-widget .tribe-events-widget-events-list__event-date-tag-month,
+.tribe-events-widget.tribe-events-widget .tribe-events-widget-events-list__event-date-tag-daynum,
+.tribe-common--breakpoint-xsmall.tribe-events-widget.tribe-events-widget .tribe-events-widget-events-list__event-date-tag-month,
+.tribe-common--breakpoint-xsmall.tribe-events-widget.tribe-events-widget .tribe-events-widget-events-list__event-date-tag-daynum {
+	display: block;
+	margin: 0;
+}
+
+/* Bandeau du mois. Règles de TEC toutes en 0,2,0 : 0,3,0 suffit ici. */
+.tribe-events-widget.tribe-events-widget .tribe-events-widget-events-list__event-date-tag-month {
+	padding: 3px 0 4px;
+	background-color: var(--wp--preset--color--contrast);
+	color: var(--wp--preset--color--base);
+	font-family: var(--wp--preset--font-family--display);
+	font-size: 10px;
+	font-weight: 600;
+	letter-spacing: 0.08em;
+	line-height: 1.3;
+}
+
+/*
+ * Quantième. Le gabarit lui pose `tribe-common-h2 tribe-common-h4--min-medium`,
+ * dont la taille est re-déclarée en 0,3,0 au breakpoint medium : même paire de
+ * sélecteurs que pour la largeur.
+ */
+.tribe-events-widget.tribe-events-widget .tribe-events-widget-events-list__event-date-tag-daynum,
+.tribe-common--breakpoint-medium.tribe-events-widget.tribe-events-widget .tribe-events-widget-events-list__event-date-tag-daynum {
+	padding: 6px 0;
+	color: var(--wp--preset--color--contrast);
+	font-family: var(--wp--preset--font-family--display);
+	font-size: 20px;
+	font-weight: 600;
+	line-height: 1.15;
+}
+
+/*
+ * Survol des liens dans les vues TEC.
+ *
+ * Au repos, les liens gardent la couleur de TEC (`.tribe-common a`, en 0,1,1,
+ * qui l'emporte sur les 0,1,0 du theme.json — voir l'explication plus haut).
+ * Seul le survol est repris à la charte.
+ *
+ * `!important` est nécessaire pour passer devant les états de TEC, mais il ne
+ * se contourne pas : le seul moyen d'en exempter un élément est de l'exclure
+ * du sélecteur. Sans le `:not()`, le bouton « Tous les évènements » recevait
+ * un texte accent-1 sur le fond accent-1 du survol — invisible.
+ *
+ * L'exclusion vise `.wp-element-button` et non une classe du widget : c'est la
+ * convention de WordPress lui-même, qui publie ses styles de lien en
+ * `a:where(:not(.wp-element-button))`. Un bouton n'est pas un lien de texte, et
+ * la règle vaudra pour tout autre bouton déposé dans une vue du calendrier.
+ */
+.tribe-common a:hover:not(.wp-element-button) {
+	color: var(--wp--preset--color--accent-1) !important;
+}
+.tribe-common-anchor-thin:hover {
+	border-bottom: 1px solid var(--wp--preset--color--accent-1) !important;
+}
+
+.tribe-events-widget-events-list__event-datetime {
+	color: var(--wp--preset--color--gris-texte);
 }
