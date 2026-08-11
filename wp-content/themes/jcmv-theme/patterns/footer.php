@@ -112,8 +112,8 @@
 				<!-- wp:list {"className":"jcmv-footer__list"} -->
 				<ul class="wp-block-list jcmv-footer__list" role="list">
 					<!-- wp:list-item --><li><a href="https://www.ffjudo.com/" target="_blank" rel="noopener">FFJDA<span class="screen-reader-text"> (nouvelle fenêtre)</span></a></li><!-- /wp:list-item -->
-					<!-- wp:list-item --><li><a href="https://www.judo-auvergnerhonealpes.fr/" target="_blank" rel="noopener">Ligue AURA<span class="screen-reader-text"> (nouvelle fenêtre)</span></a></li><!-- /wp:list-item -->
-					<!-- wp:list-item --><li><a href="https://www.comitejudo63.fr/" target="_blank" rel="noopener">Comité 63<span class="screen-reader-text"> (nouvelle fenêtre)</span></a></li><!-- /wp:list-item -->
+					<!-- wp:list-item --><li><a href="https://www.aurajudo.com/" target="_blank" rel="noopener">Ligue AURA<span class="screen-reader-text"> (nouvelle fenêtre)</span></a></li><!-- /wp:list-item -->
+					<!-- wp:list-item --><li><a href="https://puy-de-dome-judo.ffjudo.com/" target="_blank" rel="noopener">Comité 63<span class="screen-reader-text"> (nouvelle fenêtre)</span></a></li><!-- /wp:list-item -->
 				</ul>
 				<!-- /wp:list -->
 			</div>
