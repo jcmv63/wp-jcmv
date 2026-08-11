@@ -104,6 +104,15 @@ b {
  * Cette classe est posée par WordPress sur les deux, lien comme bouton.
  */
 
+/*
+ * Le `fontWeight: 600` de theme.json ne s'applique qu'à l'élément `link` : le
+ * parent d'un sous-menu, rendu en `<button>`, retombe donc au poids par défaut
+ * du navigateur. On rétablit le poids sur les deux, container et overlay mobile.
+ */
+.jcmv-header .wp-block-navigation-item__content {
+	font-weight: 600;
+}
+
 /* Liens de nav : gris clair au repos, blanc au survol/actif */
 .jcmv-header .wp-block-navigation__container .wp-block-navigation-item__content {
 	color: #c4c8d2;
@@ -121,7 +130,7 @@ b {
 .jcmv-header .wp-block-navigation__container [aria-current="page"] {
 	color: var(--wp--preset--color--base);
 	border-bottom: 2px solid var(--wp--preset--color--accent-1);
-	padding-bottom: 4px;
+	padding-top: 2px;
 }
 
 /* Burger mobile en blanc */

@@ -145,6 +145,83 @@ add_filter(
 );
 
 /**
+ * Onglet « Événements » actif sur les pages de The Events Calendar.
+ *
+ * `core/navigation-link` ne marque un item comme actif que si son identifiant
+ * de contenu égale `get_queried_object_id()`. Sur une archive de CPT, l'objet
+ * interrogé est un `WP_Post_Type` et cet identifiant vaut 0 : aucun item ne peut
+ * correspondre. Le soulignement rouge de la charte (§05) disparaît donc sur
+ * toute la section calendrier — archive, fiche événement, catégories — alors
+ * qu'il s'affiche partout ailleurs. Un lien personnalisé, sans identifiant du
+ * tout, échouerait de la même façon.
+ *
+ * On repose donc les deux marqueurs que le cœur aurait posés : `current-menu-item`
+ * sur le `<li>` et `aria-current="page"` sur le lien. La classe seule suffirait
+ * au CSS, mais laisserait les lecteurs d'écran sans l'information : c'est le
+ * même correctif, autant le faire entier.
+ *
+ * Le rapprochement se fait sur le chemin d'URL, pas sur l'URL entière : le lien
+ * du menu et celui rendu par TEC peuvent différer de schéma, de sous-domaine ou
+ * de slash final sans désigner autre chose.
+ */
+add_filter(
+	'render_block',
+	function ( $block_content, $block ) {
+		if ( 'core/navigation-link' !== ( $block['blockName'] ?? '' ) || empty( $block['attrs']['url'] ) ) {
+			return $block_content;
+		}
+
+		// Calculé une fois par requête : `false` hors section calendrier.
+		static $chemin_cible = null;
+
+		if ( null === $chemin_cible ) {
+			$dans_section = is_post_type_archive( 'tribe_events' )
+				|| is_singular( 'tribe_events' )
+				|| is_tax( 'tribe_events_cat' );
+
+			$url_archive = '';
+			if ( $dans_section ) {
+				$url_archive = function_exists( 'tribe_get_events_link' )
+					? tribe_get_events_link()
+					: (string) get_post_type_archive_link( 'tribe_events' );
+			}
+
+			$chemin_cible = $url_archive ? jcmv_chemin_url( $url_archive ) : false;
+		}
+
+		if ( ! $chemin_cible || jcmv_chemin_url( $block['attrs']['url'] ) !== $chemin_cible ) {
+			return $block_content;
+		}
+
+		$balises = new WP_HTML_Tag_Processor( $block_content );
+
+		if ( $balises->next_tag( 'LI' ) ) {
+			$balises->add_class( 'current-menu-item' );
+		}
+		if ( $balises->next_tag( 'A' ) ) {
+			$balises->set_attribute( 'aria-current', 'page' );
+		}
+
+		return $balises->get_updated_html();
+	},
+	10,
+	2
+);
+
+/**
+ * Chemin normalisé d'une URL, pour comparaison : sans schéma, sans hôte, sans
+ * requête ni slash final. Renvoie '' si l'URL n'a pas de chemin exploitable.
+ *
+ * @param string $url URL absolue ou relative.
+ * @return string
+ */
+function jcmv_chemin_url( $url ) {
+	$chemin = (string) wp_parse_url( $url, PHP_URL_PATH );
+
+	return '' === $chemin ? '' : untrailingslashit( $chemin );
+}
+
+/**
  * Catégorie de compositions (patterns) du club.
  */
 add_action(
