@@ -841,6 +841,13 @@ b {
 	padding-bottom: var(--wp--preset--spacing--60);
 }
 
+/*
+ * Correction de l'affichage des images des événements.
+ */
+.tribe-events-event-image img {
+    max-width:100%; height:auto;
+}
+
 /* ---------- Widget « Événements à venir » (bloc Events List) ---------- */
 
 /*
