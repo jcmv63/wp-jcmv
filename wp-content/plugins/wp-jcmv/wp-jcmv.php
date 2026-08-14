@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       JCMV — Gestion du club
  * Description:       Cours, créneaux, tarifs, lieux, catégories d'âge et boutique.
- * Version:           0.4.2
+ * Version:           0.4.3
  * Requires at least: 6.7
  * Requires PHP:      8.2
  * Author:            Alban
@@ -29,7 +29,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'JCMV_VERSION', '0.4.2' );
+define( 'JCMV_VERSION', '0.4.3' );
 define( 'JCMV_PLUGIN_FILE', __FILE__ );
 define( 'JCMV_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'JCMV_PLUGIN_URL', plugin_dir_url( __FILE__ ) );

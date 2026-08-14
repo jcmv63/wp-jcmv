@@ -24,6 +24,7 @@
 
 namespace JCMV\Front;
 
+use JCMV\Domain\AgeOrder;
 use JCMV\Registration\Taxonomies;
 use WP_Term;
 
@@ -184,19 +185,7 @@ final class CalendarFeed {
 			)
 		);
 
-		usort(
-			$terms,
-			static function ( WP_Term $a, WP_Term $b ): int {
-				$age_a = (int) get_term_meta( $a->term_id, 'age_min', true );
-				$age_b = (int) get_term_meta( $b->term_id, 'age_min', true );
-
-				return $age_a === $age_b
-					? strnatcasecmp( $a->name, $b->name )
-					: $age_a <=> $age_b;
-			}
-		);
-
-		return $terms;
+		return AgeOrder::sort( $terms );
 	}
 
 	/**

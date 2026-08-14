@@ -28,6 +28,7 @@
 
 namespace JCMV\Registration;
 
+use JCMV\Domain\AgeOrder;
 use JCMV\Domain\Sizes;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -67,6 +68,13 @@ final class Taxonomies {
 			)
 		);
 
+		/*
+		 * Choix multiple, contrairement aux trois autres taxonomies d'ici : un
+		 * cours ou une compétition s'adresse couramment à plusieurs catégories
+		 * (« benjamins, minimes, cadets »). D'où la liste de cases à cocher du
+		 * cœur, conservée telle quelle — mais rangée par âge, voir
+		 * categorie_age_metabox().
+		 */
 		register_taxonomy(
 			self::CATEGORIE_AGE,
 			array( PostTypes::COURS ),
@@ -82,6 +90,7 @@ final class Taxonomies {
 				'show_admin_column' => true,
 				'hierarchical'      => true,
 				'rewrite'           => false,
+				'meta_box_cb'       => array( self::class, 'categorie_age_metabox' ),
 			)
 		);
 
@@ -239,6 +248,105 @@ final class Taxonomies {
 			// récursion à craindre ici.
 			wp_set_object_terms( $post_id, array( (int) $terms[0] ), $taxonomy );
 		}
+	}
+
+	/**
+	 * Metabox des catégories d'âge : la liste de cases du cœur, mais rangée
+	 * dans l'ordre des bornes d'âge plutôt qu'alphabétiquement.
+	 *
+	 * Rien n'est redessiné ici. post_categories_meta_box() est appelée telle
+	 * quelle, encadrée de deux filtres posés puis retirés : le balisage reste
+	 * donc celui de WordPress, et tout ce qui s'y accroche continue de
+	 * fonctionner sans qu'on ait à s'en soucier — le terme principal de Yoast,
+	 * l'onglet « Plus utilisés », l'ajout d'un terme à la volée.
+	 *
+	 * La portée est volontairement limitée à cette metabox. La modification
+	 * rapide ignore meta_box_cb (voir le commentaire de jcmv_famille plus
+	 * haut) et restera alphabétique : elle n'est pas utilisée par le bureau,
+	 * on ne paie pas un filtre global pour elle.
+	 *
+	 * Vaut pour les deux écrans qui portent la taxonomie, cours et événement :
+	 * meta_box_cb est une propriété de la taxonomie, pas du type de contenu.
+	 *
+	 * @param \WP_Post             $post Post en cours d'édition.
+	 * @param array<string, mixed> $box  Arguments de la metabox, dont taxonomy.
+	 */
+	public static function categorie_age_metabox( \WP_Post $post, array $box ): void {
+		add_filter( 'get_terms', array( self::class, 'sort_categorie_age_terms' ), 10, 3 );
+		add_filter( 'wp_terms_checklist_args', array( self::class, 'unstick_checked_terms' ) );
+
+		post_categories_meta_box( $post, $box );
+
+		remove_filter( 'get_terms', array( self::class, 'sort_categorie_age_terms' ), 10 );
+		remove_filter( 'wp_terms_checklist_args', array( self::class, 'unstick_checked_terms' ) );
+	}
+
+	/**
+	 * Classe les catégories d'âge servies à la liste de cases à cocher.
+	 *
+	 * Le filtre `get_terms` est large : il voit passer toutes les requêtes de
+	 * termes de la page, y compris celles des autres metabox. D'où la double
+	 * condition.
+	 *
+	 * `get => 'all'` est la signature exacte de la requête de
+	 * wp_terms_checklist(). Elle sert aussi à épargner l'onglet « Plus
+	 * utilisés » : wp_popular_terms_checklist() interroge la même taxonomie
+	 * mais avec `orderby => 'count'`, et le classer par âge lui retirerait
+	 * précisément ce qui en fait un raccourci.
+	 *
+	 * Aucun type déclaré sur les paramètres, à dessein : `taxonomy` vaut null
+	 * dans WP_Term_Query quand la requête n'en précise aucune, et une requête
+	 * de ce genre passant par là pendant le rendu ferait une TypeError, donc un
+	 * écran d'administration blanc. Sur un filtre du cœur, on valide plutôt
+	 * qu'on ne contraint.
+	 *
+	 * @param mixed $terms      Résultat de la requête de termes.
+	 * @param mixed $taxonomies Taxonomies interrogées.
+	 * @param mixed $args       Arguments normalisés de WP_Term_Query.
+	 * @return mixed
+	 */
+	public static function sort_categorie_age_terms( $terms, $taxonomies, $args = array() ) {
+		if ( ! is_array( $terms ) || array( self::CATEGORIE_AGE ) !== $taxonomies ) {
+			return $terms;
+		}
+
+		if ( ! is_array( $args ) || 'all' !== ( $args['get'] ?? '' ) ) {
+			return $terms;
+		}
+
+		// `fields => ids|names|count` renverrait des scalaires, que le
+		// comparateur ne saurait pas classer. Le cas ne se présente pas depuis
+		// la liste de cases, mais le filtre est public : on ne suppose rien.
+		foreach ( $terms as $term ) {
+			if ( ! $term instanceof \WP_Term ) {
+				return $terms;
+			}
+		}
+
+		return AgeOrder::sort( $terms );
+	}
+
+	/**
+	 * Empêche les cases cochées de remonter en tête de liste.
+	 *
+	 * Sans cela, l'ordre par âge tiendrait à l'écran de création puis se
+	 * défairait à la première modification. The Events Calendar pose déjà ce
+	 * réglage, mais uniquement sur ses propres événements
+	 * (`prevent_checked_on_top_terms()`, conditionné à `tribe_is_event()`) :
+	 * l'écran d'un cours n'en bénéficie pas, et rien ne garantit que ce filtre
+	 * interne survive à une mise à jour du plugin.
+	 *
+	 * @param mixed $args Arguments de wp_terms_checklist().
+	 * @return mixed
+	 */
+	public static function unstick_checked_terms( $args ) {
+		if ( ! is_array( $args ) ) {
+			return $args;
+		}
+
+		$args['checked_ontop'] = false;
+
+		return $args;
 	}
 
 	/**
