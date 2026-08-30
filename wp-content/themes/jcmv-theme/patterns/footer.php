@@ -10,6 +10,11 @@
  * (logo + nom + coordonnées) et `links` (trois listes). Zone 2
  * (`jcmv-footer__bottom`) : copyright à gauche, réseaux sociaux à droite.
  *
+ * Les trois listes ne sont plus écrites ici : titres et liens sont administrés
+ * dans le plugin (menu JCMV → Pied de page) et réémis en markup de blocs par la
+ * boucle plus bas. Le reste du pied de page — coordonnées, réseaux sociaux,
+ * copyright — est toujours en dur.
+ *
  * La rupture est pilotée par le CONTENU, pas par la fenêtre : les trois
  * conteneurs sont en `flex` + `flex-wrap`, et ce sont les `flex-basis`
  * définis dans components.css qui décident du moment où ça passe à la ligne.
@@ -74,50 +79,51 @@
 		<!-- wp:group {"className":"jcmv-footer__links","style":{"spacing":{"blockGap":{"top":"var:preset|spacing|70","left":"var:preset|spacing|60"}}},"layout":{"type":"flex","flexWrap":"wrap","verticalAlignment":"top"}} -->
 		<div class="wp-block-group jcmv-footer__links">
 
+			<?php
+			/*
+			 * Les trois colonnes viennent du plugin (menu JCMV → Pied de page).
+			 *
+			 * Ce fichier de composition est du PHP dont la SORTIE est du markup de
+			 * blocs : la boucle réémet exactement les mêmes blocs qu'auparavant,
+			 * WordPress les analyse et les rend comme avant. Ni bloc dynamique à
+			 * créer, ni règle de CSS à reprendre — le `blockGap` de chaque colonne
+			 * reste généré par le cœur.
+			 *
+			 * Sans le plugin, le pied de page perd ses colonnes mais reste valide :
+			 * même règle que pour le bloc jcmv/partenaires.
+			 */
+			$jcmv_footer_columns = class_exists( '\JCMV\Domain\FooterLinksRepository' )
+				? ( new \JCMV\Domain\FooterLinksRepository() )->all()
+				: array();
+
+			foreach ( $jcmv_footer_columns as $jcmv_column ) :
+				// Une colonne dont tous les liens pointaient vers des pages
+				// dépubliées ne laisse pas un titre orphelin.
+				if ( ! $jcmv_column['liens'] ) {
+					continue;
+				}
+				?>
+
 			<!-- wp:group {"layout":{"type":"constrained"},"style":{"spacing":{"blockGap":"var:preset|spacing|30"}}} -->
 			<div class="wp-block-group">
+				<?php if ( '' !== $jcmv_column['titre'] ) : ?>
 				<!-- wp:paragraph {"className":"jcmv-footer__title"} -->
-				<p class="jcmv-footer__title">Le club</p>
+				<p class="jcmv-footer__title"><?php echo esc_html( $jcmv_column['titre'] ); ?></p>
 				<!-- /wp:paragraph -->
+				<?php endif; ?>
 				<!-- wp:list {"className":"jcmv-footer__list"} -->
 				<ul class="wp-block-list jcmv-footer__list" role="list">
-					<!-- wp:list-item --><li><a href="/le-club">À propos</a></li><!-- /wp:list-item -->
-					<!-- wp:list-item --><li><a href="/lequipe">L'équipe</a></li><!-- /wp:list-item -->
-					<!-- wp:list-item --><li><a href="/partenaires">Les partenaires</a></li><!-- /wp:list-item -->
+					<?php foreach ( $jcmv_column['liens'] as $jcmv_link ) : ?>
+					<!-- wp:list-item --><li><a href="<?php echo esc_url( $jcmv_link['url'] ); ?>"<?php echo $jcmv_link['externe'] ? ' target="_blank" rel="noopener"' : ''; ?>><?php echo esc_html( $jcmv_link['label'] ); ?><?php if ( $jcmv_link['externe'] ) : ?><span class="screen-reader-text"> (nouvelle fenêtre)</span><?php endif; ?></a></li><!-- /wp:list-item -->
+					<?php endforeach; ?>
 				</ul>
 				<!-- /wp:list -->
 			</div>
 			<!-- /wp:group -->
 
-			<!-- wp:group {"layout":{"type":"constrained"},"style":{"spacing":{"blockGap":"var:preset|spacing|30"}}} -->
-			<div class="wp-block-group">
-				<!-- wp:paragraph {"className":"jcmv-footer__title"} -->
-				<p class="jcmv-footer__title">Infos pratiques</p>
-				<!-- /wp:paragraph -->
-				<!-- wp:list {"className":"jcmv-footer__list"} -->
-				<ul class="wp-block-list jcmv-footer__list" role="list">
-					<!-- wp:list-item --><li><a href="/horaires-tarifs">Horaires &amp; tarifs</a></li><!-- /wp:list-item -->
-					<!-- wp:list-item --><li><a href="/contact">Contact</a></li><!-- /wp:list-item -->
-					<!-- wp:list-item --><li><a href="/mentions-legales">Mentions légales</a></li><!-- /wp:list-item -->
-				</ul>
-				<!-- /wp:list -->
-			</div>
-			<!-- /wp:group -->
-
-			<!-- wp:group {"layout":{"type":"constrained"},"style":{"spacing":{"blockGap":"var:preset|spacing|30"}}} -->
-			<div class="wp-block-group">
-				<!-- wp:paragraph {"className":"jcmv-footer__title"} -->
-				<p class="jcmv-footer__title">Réseau Judo</p>
-				<!-- /wp:paragraph -->
-				<!-- wp:list {"className":"jcmv-footer__list"} -->
-				<ul class="wp-block-list jcmv-footer__list" role="list">
-					<!-- wp:list-item --><li><a href="https://www.ffjudo.com/" target="_blank" rel="noopener">FFJDA<span class="screen-reader-text"> (nouvelle fenêtre)</span></a></li><!-- /wp:list-item -->
-					<!-- wp:list-item --><li><a href="https://www.aurajudo.com/" target="_blank" rel="noopener">Ligue AURA<span class="screen-reader-text"> (nouvelle fenêtre)</span></a></li><!-- /wp:list-item -->
-					<!-- wp:list-item --><li><a href="https://puy-de-dome-judo.ffjudo.com/" target="_blank" rel="noopener">Comité 63<span class="screen-reader-text"> (nouvelle fenêtre)</span></a></li><!-- /wp:list-item -->
-				</ul>
-				<!-- /wp:list -->
-			</div>
-			<!-- /wp:group -->
+			<?php
+			endforeach;
+			?>
 
 		</div>
 		<!-- /wp:group -->

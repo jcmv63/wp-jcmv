@@ -59,8 +59,24 @@ docker compose run --rm wpcli language core install fr_FR --activate
 
 `WP_DEBUG` est actif ; les erreurs sont écrites dans `wp-content/debug.log` (non affichées à l'écran).
 
-## Notes 
+## Notes
 
+### Release process
+
+```
+# tagger le plugin
+git tag plugin-vX.Y.Z
+#tagger le thème
+git tag theme-vX.Y.Z
+
+# Pousser d'abord le commit sur main
+git push origin main
+
+# Une fois le workflow sur main terminé, pousser le plugin
+git push origin plugin-vX.Y.Z
+# Une fois le workflow plugin sur main terminé, pousser le thème
+git push origin theme-vX.Y.Z
+```
 ### Forcer l'apparition d'une mise à jour
 
 Exécuter les requêtes dans l'ordre indiqué

@@ -7,7 +7,9 @@
  * via show_in_menu => 'jcmv-club'. Les taxonomies, non : WordPress ne les
  * rattache qu'aux CPT dont show_in_menu vaut true, d'où le rattachement
  * manuel plus bas — à compléter pour toute nouvelle taxonomie, sans quoi son
- * écran existe mais reste inatteignable.
+ * écran existe mais reste inatteignable. L'écran « Pied de page » (ADR-002,
+ * niveau 2) ferme la liste : c'est du paramétrage d'affichage, pas de la
+ * donnée du club.
  *
  * @package wp-jcmv
  */
@@ -72,6 +74,9 @@ final class Menu {
 				self::taxonomy_url( $taxonomy )
 			);
 		}
+
+		// En dernier : du paramétrage d'affichage, pas de la donnée du club.
+		FooterPage::add_page();
 	}
 
 	/** @return array<string,string> slug de taxonomie => libellé du sous-menu. */

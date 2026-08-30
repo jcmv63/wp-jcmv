@@ -79,6 +79,15 @@ Pour basculer : changer le slug dans `parts/header.html`.
 Le footer (`jcmv/footer`) porte le lien permanent « Gérer mes cookies » (obligation
 charte §11) — à brancher sur la solution de consentement lorsqu'elle sera choisie.
 
+Les **trois colonnes de liens** du footer ne sont plus écrites dans le pattern : titres
+et liens s'administrent dans le plugin (menu **JCMV → Pied de page**, ADR-002 niveau 2),
+et `patterns/footer.php` les réémet en markup de blocs — mêmes `wp:group` / `wp:list`,
+mêmes classes, aucun CSS à reprendre. Un lien interne stocke un `page_id` (résolu au
+rendu, donc insensible au changement de slug) ; un lien externe stocke son URL et reçoit
+automatiquement `target="_blank"`, `rel="noopener"` et la mention « (nouvelle fenêtre) ».
+Sans le plugin actif, le pattern rend le footer sans ses colonnes. Le reste du pied de
+page (coordonnées, réseaux sociaux, copyright) reste en dur.
+
 ## 5. Templates
 
 | Template | Rôle |

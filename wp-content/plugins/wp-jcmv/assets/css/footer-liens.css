@@ -1,0 +1,84 @@
+/**
+ * Écran « Pied de page ».
+ *
+ * Les trois colonnes du formulaire reprennent la disposition de la zone
+ * qu'elles pilotent : côte à côte tant que la place le permet, empilées
+ * ensuite. La rupture est portée par le contenu (flex-basis), pas par une
+ * media query — même raisonnement que le pied de page lui-même.
+ */
+
+.jcmv-footer-cols {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 20px;
+	align-items: flex-start;
+	margin: 16px 0 8px;
+}
+
+.jcmv-footer-col {
+	flex: 1 1 340px;
+	margin: 0;
+	padding: 12px 16px 16px;
+	border: 1px solid #c3c4c7;
+	background: #fff;
+}
+
+.jcmv-footer-col__titre {
+	margin: 0 0 12px;
+}
+
+.jcmv-footer-col__titre span {
+	display: block;
+	margin-bottom: 4px;
+	font-weight: 600;
+}
+
+.jcmv-footer-col__titre input {
+	width: 100%;
+	max-width: none;
+}
+
+.jcmv-footer-rows {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.jcmv-footer-row {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	padding: 8px;
+	border-left: 3px solid #dcdcde;
+	background: #f6f7f7;
+}
+
+.jcmv-footer-row__field {
+	display: block;
+}
+
+.jcmv-footer-row input[type="text"],
+.jcmv-footer-row input[type="url"],
+.jcmv-footer-row select {
+	width: 100%;
+	max-width: none;
+}
+
+/* Champ neutralisé parce qu'une page est choisie : visible, mais en retrait. */
+.jcmv-footer-row__url--off {
+	opacity: 0.5;
+}
+
+.jcmv-footer-row__tools {
+	display: flex;
+	gap: 4px;
+	justify-content: flex-end;
+}
+
+.jcmv-footer-add {
+	margin-top: 12px;
+}
+
+.jcmv-footer-admin__intro {
+	max-width: 60em;
+}
