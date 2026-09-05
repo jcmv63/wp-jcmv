@@ -115,7 +115,7 @@ taxonomies sont donc déclarées `hierarchical => true` sans hiérarchie réelle
 | `jcmv_produit_couleur` | string | Coloris du produit, saisie libre |
 | `jcmv_produit_dispo` | string (enum) | `disponible` / `sur-commande` / `epuise` |
 | `jcmv_produit_tailles` | array\<string\> | Libellés de tailles, **dans l'ordre d'affichage** |
-| `jcmv_produit_galerie` | array\<int\> | 0 à 3 IDs d'attachements, en plus de l'image mise en avant |
+| `jcmv_produit_galerie` | array\<int\> | 0 à 12 IDs d'attachements, **dans l'ordre d'affichage**, en plus de l'image mise en avant |
 
 #### Term meta du système de tailles
 
@@ -176,6 +176,64 @@ Deux metaboxes : **Produit** (prix, couleur, disponibilité, tailles) et **Photo
 (galerie complémentaire). La première peut être remontée entre le titre et l'éditeur via
 `edit_form_after_title` si l'ordre natif gêne à l'usage — à décider en le voyant.
 
+#### L'ordre des photos : des boutons, pas un glisser-déposer (2026-09-04)
+
+L'ordre existait déjà — `jcmv_produit_galerie` est un tableau ordonné, hérité de l'ordre
+des clics dans la médiathèque. Ce qui manquait, c'était le moyen de le **corriger** sans
+tout resélectionner.
+
+Le glisser-déposer a été écarté, et l'argument tranche presque seul : le RGAA impose une
+alternative à un seul pointeur pour toute action au glissement. Une bibliothèque de tri
+n'en dispense pas — les boutons seraient donc à écrire **en plus**, jamais à la place. La
+question n'était pas « boutons ou glisser » mais « boutons seuls, ou boutons plus
+glisser ».
+
+Les autres options, pour mémoire : `jquery-ui-sortable` est déjà embarqué par WordPress
+(aucune dépendance à installer) mais c'est la partie du cœur la plus susceptible d'être
+retirée à terme, et son accessibilité au clavier est inexistante ; l'API glisser-déposer
+native n'émet **aucun événement au tactile**, ce qui la disqualifie pour un bureau qui
+saisit souvent sur portable ; un glissement aux événements de pointeur marcherait partout
+mais coûte quatre-vingts lignes et ses cas tordus (seuil de déclenchement pour distinguer
+un clic d'un glissement, défilement automatique en bord de liste).
+
+Deux flèches par vignette coûtent quinze lignes, se comportent à l'identique à la souris,
+au doigt et au clavier, et n'ajoutent aucune dépendance. Leur défaut est réel — amener la
+douzième photo en tête demande onze clics — mais on réordonne une galerie **une fois, à la
+création de la fiche**. Ajouter le glissement par-dessus reste purement additif : les deux
+mécanismes ne font que permuter des `<li>` et resynchroniser le même champ caché.
+
+Deux détails portent l'essentiel de l'ergonomie :
+
+- **Le focus suit la photo déplacée, pas la position.** Sans ça, on perd sa place à chaque
+  clic et trois déplacements deviennent trois clics plus trois tabulations. Quand la flèche
+  empruntée vient d'être désactivée — la photo a atteint le bout —, le focus bascule sur
+  l'autre plutôt que de retomber sur le document.
+- **Le libellé de chaque flèche porte le rang de la photo** (« Déplacer la photo 3 vers la
+  gauche »), réécrit à chaque mutation. Sans lui, les vingt-quatre boutons d'une galerie de
+  douze photos porteraient deux libellés seulement, répétés à l'identique, et les vignettes
+  étant en `alt=""`, rien ne distinguerait la troisième photo de la septième à la synthèse
+  vocale. Il tient aussi lieu de compte rendu : le focus restant sur le bouton de la photo
+  déplacée, c'est le changement de son propre nom qui annonce le nouveau rang — sans région
+  `aria-live` à maintenir.
+- **Rouvrir la médiathèque ne détruit plus l'ordre.** La liste n'est plus reconstruite de
+  zéro : les photos déjà présentes gardent leur place, les disparues sont retirées, les
+  nouvelles ajoutées à la suite. Sans cela, ajouter une seule photo effacerait l'ordre que
+  le bureau vient de composer — le genre de perte qu'on ne remarque qu'après
+  enregistrement.
+
+#### La liste des produits signale les fiches sans photo
+
+Un produit sans image mise en avant est écarté de la grille par le repository. La règle est
+maintenue, mais elle était **silencieuse** : le bureau publiait une fiche, ne la voyait pas
+apparaître, et rien ne lui disait pourquoi. Une colonne « Photo » sur l'écran de liste
+montre la miniature, ou l'avertissement quand elle manque.
+
+La liste plutôt qu'une notice sur l'écran d'édition : une notice ne se voit qu'après coup,
+sur une fiche à la fois, là où la colonne montre tout le catalogue d'un coup d'œil et
+répond à la question avant qu'elle ne soit posée. Le message dépend du statut — sur un
+brouillon, « n'apparaît pas sur le site » serait faux, et l'avertissement deviendrait un
+bruit qu'on apprend à ignorer, ce qui le rendrait inopérant là où il compte.
+
 ### Bloc `jcmv/boutique`
 
 Rendu serveur (`render.php`), sur le modèle du bloc `jcmv/partenaires` — ADR-002 : pas de
@@ -199,11 +257,137 @@ le formulaire de commande, alimentée par la même meta.
 
 ### Galerie et images
 
-Image mise en avant + 3 photos complémentaires (face, dos, détail du flocage). Vignettes
-sous la photo principale, permutation au clic par un `view.js` de quelques lignes — aucune
-bibliothèque tierce. Les vignettes sont masquées tant que le script n'a pas posé sa
-classe : sans JavaScript, la carte se réduit à sa photo principale plutôt qu'à une rangée
-de boutons inertes.
+Image mise en avant + jusqu'à 12 photos complémentaires (face, dos, détail du flocage,
+autres coloris). Vignettes sous la photo principale, permutation au clic par un `view.js`
+de quelques lignes — aucune bibliothèque tierce. Les vignettes sont masquées tant que le
+script n'a pas posé sa classe : sans JavaScript, la carte se réduit à sa photo principale
+plutôt qu'à une rangée de boutons inertes.
+
+#### Format d'import demandé au bureau : 4:5, 1200 × 1500
+
+La consigne est affichée dans la boîte Photos, là où le bureau téléverse — pas dans un
+guide qu'il n'ouvrira pas.
+
+Le ratio compte plus que la taille, et pour une raison qui n'est pas intuitive.
+`wp_calculate_image_srcset()` n'inclut dans le `srcset` **que les tailles dont le ratio
+correspond** à celle demandée. Avec un original en 4:5, les tailles bornées du cœur
+conservent ce ratio et entrent toutes dans le jeu — `300×375`, `600×750`, `768×960`,
+`800×1000`, la pleine taille — et le navigateur choisit selon la carte et la densité de
+l'écran. Avec un original en 4:3 ou en carré, `medium`, `medium_large` et `large` gardent
+le ratio d'origine et sont **toutes écartées** : il ne reste que le recadrage
+`jcmv-produit`, étiré sur un écran à haute densité. Cadrer en 4:5 ne fait donc pas
+qu'éviter la coupe, cela débloque cinq déclinaisons au lieu d'une.
+
+1200 px de large couvre le pire cas de la mise en page — une carte d'environ 550 px en une
+colonne, sur un écran à densité 2 — et reste sous le seuil de 2560 px au-delà duquel
+WordPress redimensionne l'original à l'import.
+
+Reste possible, si la discipline de saisie ne suit pas : enregistrer une seconde taille
+`jcmv-produit-2x` en 1200 × 1500, également en *hard crop*. Les deux recadrages étant en
+4:5, ils se retrouveraient tous les deux dans le `srcset` quel que soit le format de
+l'original. Le prix serait un fichier dérivé de plus par photo et une régénération des
+miniatures — non retenu tant que la consigne affichée suffit.
+
+#### Le plafond, et pourquoi il a changé de rôle (2026-09-04)
+
+Il valait 3, et ce n'était pas une limite de stockage : c'était la largeur d'une carte.
+Douze miniatures de 44 px ne tenaient pas dans une rangée qui ne défilait pas. Depuis que
+la bande défile, ce n'est plus elle qu'il faut protéger — le plafond ne sert plus qu'à
+empêcher l'absurde, une sélection ratée dans la médiathèque partant à deux cents images.
+D'où 12, qui couvre cinq coloris en face et en dos avec de la marge.
+
+#### La bande de vignettes défile
+
+`overflow-x: auto` sur la liste, rien de plus : pas de bibliothèque, pas de JavaScript
+supplémentaire, aucun changement de balisage. `view.js` continue de faire ce qu'il faisait,
+c'est-à-dire déplacer une classe.
+
+**La largeur de la bande est bornée par un calcul, pas choisie à l'œil** :
+`4,5 × pas + 1,5 × gouttière`, où le pas est la largeur réellement occupée par une vignette
+(44 px d'image, plus 2 px de cadre de chaque côté) augmentée de la gouttière. La cinquième
+vignette montre donc exactement **la moitié d'elle-même**, toujours, quelle que soit la
+largeur de la carte — vérifié en navigateur : 24 px sur 48.
+
+C'est le cœur de la décision d'affordance. Un objet tronqué se lit comme « ça continue »
+sans avoir à être appris ; un bord net se lit comme « c'est fini ». Aucun dégradé, aucune
+flèche ne dit cela aussi bien — et un dégradé se lit au moins autant comme une décoration
+que comme une promesse. Les flèches `::scroll-button()` ont été écartées pour deux
+raisons : elles n'existent que dans les moteurs Chromium, et elles occupent de la place à
+l'état désactivé, c'est-à-dire précisément quand il n'y a rien à faire défiler.
+
+La gouttière est en dur (8 px) et non en token d'espacement, contrairement au reste du
+bloc : les presets du thème peuvent être fluides (`clamp`, `vw`), et un pas variable
+rendrait la coupe aléatoire. C'est une valeur de calcul, pas une valeur de charte.
+
+**Le centrage se fait par `width: fit-content` et des marges automatiques, pas par
+`justify-content`.** Sur un conteneur qui déborde, un centrage ordinaire répartit le
+dépassement des deux côtés et la première vignette devient inatteignable — le défilement ne
+remonte pas avant l'origine.
+
+`justify-content: safe center` corrige précisément ce cas, et c'est ce qui avait été écrit
+d'abord, avec la déclaration ordinaire en repli. Mauvaise idée : un moteur qui ignore le
+mot-clé jette la seconde déclaration et applique la première, c'est-à-dire la panne
+elle-même. **Un repli qui reproduit le bug n'est pas un repli.** `fit-content` donne le même
+rendu sans dépendre d'aucun mot-clé — sous le seuil la bande se réduit à son contenu et les
+marges la centrent, au-delà `max-width` la plafonne et le contenu part de l'origine.
+
+**Le défilement sur poste fixe** se fait au pavé tactile à deux doigts, à la molette
+(les moteurs la traduisent en défilement horizontal quand l'élément ne déborde que dans ce
+sens) et, surtout, **au clic sur la vignette coupée** : ce qui signale qu'il y a autre
+chose est aussi ce sur quoi on clique pour y aller.
+
+Ce dernier point demande six lignes dans `view.js`, contrairement à ce qui avait été écrit
+ici d'abord. Un navigateur amène bien dans le champ visible l'élément qui reçoit le focus,
+mais **seulement pour la navigation séquentielle au clavier** — jamais pour un focus
+provoqué par un clic, puisque le pointeur est déjà sur l'élément et qu'il n'y a rien à
+révéler de son point de vue. À l'essai, la photo changeait donc, et la bande ne bougeait
+pas : la vignette qu'on venait de choisir restait à moitié cachée. Le clavier, lui,
+fonctionne bien tout seul.
+
+Le défilement est écrit à la main plutôt que délégué à `scrollIntoView()` — celui-ci
+remonte toute la chaîne des conteneurs et ferait sauter la page quand la carte est à cheval
+sur le bas de la fenêtre — et il **laisse dépasser une demi-vignette du côté où l'on va**.
+Un défilement minimal collerait la vignette choisie contre le bord et ferait disparaître le
+signal de continuation au premier clic, précisément quand on vient de prouver qu'il y a une
+suite. La bande avance ainsi d'exactement un pas par clic, et l'amorce de la suivante
+mesure toujours la même moitié qu'au repos — vérifié en navigateur : 24 px sur 48, dans
+tous les états.
+
+**La barre de défilement est masquée**, et c'est un renoncement à ce qui était prévu. Elle
+aurait été le seul repère à dire *combien* il reste. Mais là où elle n'est pas en
+surimpression — Windows, la plupart des Linux — elle occupe une dizaine de pixels dans
+l'axe de bloc, et **seulement sur les cartes qui débordent** : elle rallongeait donc les
+cartes à cinq photos et plus, décalant leurs titres. C'est exactement le défaut que la
+bande toujours rendue existe pour supprimer, simplement déplacé du seuil « une photo /
+plusieurs » au seuil « quatre / cinq ».
+
+`scrollbar-gutter: stable` réserverait la place en permanence, mais son application à une
+barre horizontale est bien moins établie que pour la verticale. La vignette coupée reste
+donc le signal, seule — ce qui était de toute façon la décision, la barre n'ayant jamais été
+qu'un renfort absent sur la moitié des plateformes.
+
+#### La bande est affichée même pour une seule photo
+
+Le cadre étant en ratio fixe, toutes les photos font la même hauteur. Ce qui décalait les
+titres d'une carte à l'autre, c'était la bande : présente ici, absente là. En la rendant
+toujours, les titres et les prix — les deux repères que l'œil balaie en diagonale sur une
+grille — se retrouvent à la même altitude partout, **sans déplacer les vignettes loin de
+la photo qu'elles commandent**.
+
+L'alternative examinée était de descendre la bande sous le titre et le prix. Elle a été
+écartée pour une raison qui ne se voit pas aujourd'hui : la carte va grandir. La page
+produit publique, puis le formulaire de commande avec sa liste de tailles et son bouton,
+s'empileront sous le prix, et les vignettes s'éloigneraient un peu plus de leur photo à
+chaque ajout. Le bloc média doit rester une unité — la photo et ses commandes —, le reste
+s'accumulant en dessous.
+
+Le prix payé est une miniature redondante sur les produits à une seule photo, c'est-à-dire
+sur la majorité d'un catalogue de club. Il est ramené au minimum : **dans ce cas la
+vignette n'est pas un bouton** mais un `<span>`, et la liste entière porte `aria-hidden`.
+Plus d'arrêt de tabulation inutile, plus de « Photo 1 sur 1, bouton, enfoncé » répété sur
+chaque carte d'une grille — c'était là le vrai coût, et non les 60 px de hauteur. Elle
+garde le cadre actif : sans lui, elle se lirait « non sélectionnée » à côté de voisines
+qui, elles, le sont.
 
 Taille d'image `jcmv-produit` en **hard crop** 600 × 750 (4:5), contrairement à
 `jcmv-logo` : une grille de produits n'est lisible que si toutes les vignettes ont le même
@@ -218,10 +402,11 @@ src/Registration/ImageSizes.php         → jcmv-produit (hard crop)
 src/Domain/Sizes.php                    → normalisation, comparaison et tri des libellés de tailles
 src/Domain/ProductRepository.php        → produits publiés avec image, données d'affichage
 src/Admin/TermFields.php                → champ « Tailles » sur l'écran du système
-src/Admin/ProduitMetabox.php            → prix, couleur, disponibilité, tailles, galerie
+src/Admin/ProduitMetabox.php            → prix, couleur, disponibilité, tailles, galerie ordonnée
+src/Admin/ProduitListe.php              → colonne « Photo » de l'écran de liste
 src/Front/Blocks.php                    → register_block_type( blocks/boutique )
 src/Plugin.php                          → câblage ProduitMetabox (branche is_admin)
-assets/js/produit-metabox.js            → cases de tailles + sélection de photos (wp.media)
+assets/js/produit-metabox.js            → cases de tailles + sélection et ordre des photos (wp.media)
 assets/css/produit-metabox.css          → styles d'administration
 blocks/boutique/                        → block.json, index.js, render.php, style.css, view.js
 ```
@@ -367,6 +552,25 @@ des commandes. La table reviendra alors avec `dispo` là où elle avait `prix`.
   supprimer manuellement sur les bases de développement concernées.
 - **`jcmv-produit` étant en hard crop**, toute modification ultérieure du ratio impose une
   régénération des miniatures — même contrainte que `jcmv-logo`.
+- **Le pas des vignettes est figé en CSS** (44 px d'image, 2 px de cadre, 8 px de
+  gouttière). Changer l'une de ces trois valeurs sans recalculer la largeur maximale de la
+  bande fait disparaître la vignette coupée, et avec elle le seul signal qui invite au
+  défilement. Les trois vivent en propriétés personnalisées au même endroit, précisément
+  pour que la formule reste vraie.
+- **Rien ne doit reprendre de la hauteur dans la bande.** Sa hauteur est constante d'une
+  carte à l'autre, et c'est ce qui aligne les titres de la grille. Une barre de défilement
+  classique, un contour, une bordure ajoutés à la bande sur les seules cartes qui débordent
+  ramèneraient le décalage — c'est le piège dans lequel la première version est tombée.
+- **Douze photos par produit sur cent produits**, c'est jusqu'à treize images par carte
+  dans le DOM. Elles sont différées et le repository amorce leur cache en une requête, mais
+  le poids de page d'une grille pleine n'a pas été mesuré. À vérifier avant d'ouvrir la
+  boutique au bureau.
+- **Les arrêts de tabulation se multiplient.** Un produit à douze photos, ce sont douze
+  boutons ; sur une grille de vingt produits, deux cent quarante arrêts. La vignette
+  solitaire des produits à une seule photo n'en ajoute aucun (c'est un `<span>`), mais le
+  fond du problème demeure. Le remède standard — un seul arrêt par bande, les flèches du
+  clavier pour circuler à l'intérieur — demande du JavaScript et mérite une passe
+  d'accessibilité pour lui-même.
 - **`DeletionGuard` n'est pas concerné** : aucun autre objet du modèle ne référence un
   produit, et le produit ne possède plus de lignes en table custom.
 - **Convention ADR-001 maintenue** : dépublier = retirer du site sans perdre la fiche. Un
@@ -391,8 +595,19 @@ des commandes. La table reviendra alors avec `dispo` là où elle avait `prix`.
       `do_blocks()` dans `render.php`
 - [ ] Valider le périmètre avec le bureau (nombre de références, qui saisit, qui relit les
       prix, familles et systèmes de tailles réels)
+- [x] Plafond de galerie porté à 12, bande de vignettes en défilement horizontal avec
+      vignette coupée garantie
+- [x] Bande affichée même pour une seule photo, vignette non interactive dans ce cas
+- [x] Ordre des photos par flèches dans la metabox, focus qui suit la photo déplacée,
+      ordre préservé à la réouverture de la médiathèque
+- [x] Colonne « Photo » sur l'écran de liste des produits
 - [ ] Recette fonctionnelle en local : un judogi, un t-shirt noir, un t-shirt blanc, un
       accessoire sans taille
+- [x] Défilement de la bande au clic sur la vignette coupée (le focus au clic ne suffit
+      pas, contrairement à ce qui avait été supposé)
+- [ ] Vérifier le défilement de la bande à la molette sur Firefox et Safari — comportement
+      de fait, pas de spécification
+- [ ] Mesurer le poids d'une grille de vingt produits à douze photos
 - [ ] Page `/boutique` composée dans l'éditeur, entrée de navigation
 - [ ] Passe accessibilité (contraste des pastilles de statut, navigation clavier des
       vignettes)

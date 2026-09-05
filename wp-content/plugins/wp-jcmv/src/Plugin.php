@@ -54,6 +54,7 @@ final class Plugin {
 			Admin\LieuMetabox::register();
 			Admin\PartenaireMetabox::register();
 			Admin\ProduitMetabox::register();
+			Admin\ProduitListe::register();
 			Admin\FooterPage::register();
 			Updater::register();
 		}

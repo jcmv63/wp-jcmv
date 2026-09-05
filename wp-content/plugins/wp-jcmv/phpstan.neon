@@ -1,0 +1,50 @@
+# Analyse statique du plugin (PHPStan).
+#
+# Les chemins sont ceux du CONTENEUR, pas ceux du Mac : ce fichier est écrit
+# dans wp-content, que docker-compose monte sur /var/www/html/wp-content.
+#
+#   docker exec jcmv_wp phpstan analyse \
+#     -c /var/www/html/wp-content/plugins/wp-jcmv/phpstan.neon --memory-limit=1G
+#
+# Le cœur de WordPress n'est pas ANALYSÉ, seulement PARCOURU (scanDirectories) :
+# PHPStan y découvre les fonctions, classes et constantes du cœur sans signaler
+# les défauts du cœur lui-même. C'est ce qui remplace le paquet
+# php-stubs/wordpress-stubs, et ça a un avantage sur lui — c'est la version de
+# WordPress réellement installée qui sert de référence, pas une approximation.
+# Le revers : le cœur est peu annoté, donc les types de retour restent flous et
+# les niveaux élevés produisent du bruit. Passer aux stubs le jour où le niveau
+# monte.
+parameters:
+    # Niveau 5 : un compromis pour du code existant.
+    #
+    # À savoir avant de le changer : les APPELS À DES FONCTIONS INCONNUES sont
+    # détectés DÈS LE NIVEAU 0. C'est la classe d'erreur qui a produit le
+    # `easc_html_e` — un niveau 0 aurait suffi à l'attraper. Descendre à 0 ou 1
+    # donne donc déjà l'essentiel du filet, sans le bruit de typage.
+    level: 5
+
+    paths:
+        - /var/www/html/wp-content/plugins/wp-jcmv
+
+    scanDirectories:
+        - /var/www/html/wp-includes
+        - /var/www/html/wp-admin/includes
+
+    excludePaths:
+        analyseAndScan:
+            - */node_modules/*
+            - */vendor/*
+
+    # Un premier passage sur du code existant remonte toujours des motifs qu'on
+    # décide d'ignorer. Sans cette option, chaque motif devenu inutile devient
+    # lui-même une erreur, ce qui transforme le fichier en dette.
+    reportUnmatchedIgnoredErrors: false
+
+    ignoreErrors:
+        # Les gabarits de bloc reçoivent $attributes, $content et $block du
+        # cœur, qui les injecte au moment du rendu (render_block()). Aucune
+        # déclaration ne les précède dans le fichier, et PHPStan ne peut pas le
+        # deviner. Le contrat est documenté en tête de chaque render.php.
+        -
+            message: '#^Variable \$\w+ might not be defined#'
+            path: blocks/*/render.php

@@ -81,7 +81,14 @@ $jcmv_wrapper = get_block_wrapper_attributes(
 			)
 		);
 
-		$jcmv_total_photos = count( $jcmv_galerie ) + 1;
+		/*
+		 * Pile des photos de la carte : l'image mise en avant, puis la galerie.
+		 * C'est elle que parcourt la bande de vignettes, là où la boucle
+		 * piochait auparavant dans deux sources avec un décalage d'indice à
+		 * faire de tête (« rang 0 ou galerie[rang - 1] »).
+		 */
+		$jcmv_pile         = array_merge( array( (int) $jcmv_produit['photo_id'] ), array_map( 'intval', $jcmv_galerie ) );
+		$jcmv_total_photos = count( $jcmv_pile );
 		$jcmv_a_du_detail  = $jcmv_details
 			&& ( '' !== trim( wp_strip_all_tags( $jcmv_produit['description'] ) )
 				|| '' !== $jcmv_produit['couleur']
@@ -110,25 +117,69 @@ $jcmv_wrapper = get_block_wrapper_attributes(
 						<?php endforeach; ?>
 					</div>
 
-					<?php if ( $jcmv_galerie ) : ?>
-						<?php
-						/*
-						 * Les vignettes ne servent à rien sans JavaScript : le
-						 * CSS les masque tant que view.js n'a pas posé la classe
-						 * jcmv-shop--js. La photo principale, elle, reste
-						 * visible dans tous les cas.
-						 */
-						?>
-						<ul class="jcmv-shop__thumbs">
-							<?php for ( $jcmv_i = 0; $jcmv_i < $jcmv_total_photos; $jcmv_i++ ) : ?>
-								<li class="jcmv-shop__thumb-item">
+					<?php
+					/*
+					 * La bande est affichée même quand le produit n'a qu'une
+					 * photo, et c'est une décision, pas un effet de bord.
+					 *
+					 * Le cadre étant en ratio fixe, toutes les photos font la
+					 * même hauteur ; c'est la bande qui, présente ici et absente
+					 * là, décalait les titres d'une carte à l'autre et cassait
+					 * l'alignement de la grille. En la rendant toujours, on
+					 * garde les vignettes collées à la photo qu'elles commandent
+					 * — la convention e-commerce — sans payer ce décalage.
+					 *
+					 * Le prix est une miniature redondante sur les produits à
+					 * une seule photo. Il est ramené au minimum juste en
+					 * dessous : ce n'est alors pas un bouton.
+					 *
+					 * Les vignettes ne servent à rien sans JavaScript : le CSS
+					 * masque la bande entière tant que view.js n'a pas posé la
+					 * classe jcmv-shop--js. La photo principale, elle, reste
+					 * visible dans tous les cas — et toutes les cartes sont
+					 * alors logées à la même enseigne, donc alignées.
+					 */
+					?>
+					<ul class="jcmv-shop__thumbs"<?php echo 1 === $jcmv_total_photos ? ' aria-hidden="true"' : ''; ?>>
+						<?php foreach ( $jcmv_pile as $jcmv_i => $jcmv_photo_id ) : ?>
+							<li class="jcmv-shop__thumb-item">
+								<?php if ( 1 === $jcmv_total_photos ) : ?>
+									<?php
+									/*
+									 * Une seule photo : la vignette n'est plus
+									 * une commande, elle n'a rien à choisir.
+									 * Un <span> plutôt qu'un <button> lui retire
+									 * son arrêt de tabulation et son
+									 * « Photo 1 sur 1, bouton, enfoncé » — répété
+									 * sur chaque carte d'une grille, c'était le
+									 * vrai coût de cette décision.
+									 *
+									 * Elle garde le cadre actif : sans lui, elle
+									 * se lirait « non sélectionnée » à côté de
+									 * voisines qui, elles, le sont.
+									 */
+									?>
+									<span class="jcmv-shop__thumb jcmv-shop__thumb--inerte is-active">
+										<?php
+										echo wp_get_attachment_image( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wp_get_attachment_image() échappe déjà.
+											(int) $jcmv_photo_id,
+											'thumbnail',
+											false,
+											array(
+												'alt'     => '',
+												'loading' => 'lazy',
+											)
+										);
+										?>
+									</span>
+								<?php else : ?>
 									<button type="button"
 										class="jcmv-shop__thumb<?php echo 0 === $jcmv_i ? ' is-active' : ''; ?>"
 										data-jcmv-photo="<?php echo esc_attr( (string) $jcmv_i ); ?>"
 										aria-pressed="<?php echo 0 === $jcmv_i ? 'true' : 'false'; ?>">
 										<?php
 										echo wp_get_attachment_image( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wp_get_attachment_image() échappe déjà.
-											0 === $jcmv_i ? $jcmv_produit['photo_id'] : (int) $jcmv_galerie[ $jcmv_i - 1 ],
+											(int) $jcmv_photo_id,
 											'thumbnail',
 											false,
 											array(
@@ -149,10 +200,10 @@ $jcmv_wrapper = get_block_wrapper_attributes(
 											?>
 										</span>
 									</button>
-								</li>
-							<?php endfor; ?>
-						</ul>
-					<?php endif; ?>
+								<?php endif; ?>
+							</li>
+						<?php endforeach; ?>
+					</ul>
 				</div>
 
 				<div class="jcmv-shop__body">

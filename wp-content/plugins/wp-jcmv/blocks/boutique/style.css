@@ -98,13 +98,85 @@
 	visibility: visible;
 }
 
+/*
+ * La bande de vignettes défile horizontalement. Sa largeur est bornée de façon
+ * à ce que la cinquième vignette soit COUPÉE EN DEUX au bord droit — c'est le
+ * seul signal qui dise « il y en a d'autres » sans avoir à être appris : un
+ * objet tronqué se lit comme « ça continue », un bord net comme « c'est fini ».
+ *
+ * D'où une arithmétique, et non un nombre choisi à l'œil : quatre vignettes
+ * pleines, leurs quatre gouttières, la moitié de la cinquième, plus les marges
+ * intérieures — soit « 4,5 × pas + 1,5 × gouttière ». Le pas est la largeur
+ * réellement occupée par une vignette (l'image, plus le cadre de sélection de
+ * 2 px de chaque côté) augmentée de la gouttière.
+ *
+ * La gouttière est en dur et non en token d'espacement, contrairement au reste
+ * du bloc : les presets du thème peuvent être fluides (clamp, vw), et un pas
+ * variable rendrait la coupe aléatoire. C'est une valeur de calcul, pas une
+ * valeur de charte.
+ */
 .jcmv-shop__thumbs {
+	--jcmv-thumb: 44px;
+	--jcmv-thumb-bord: 2px;
+	--jcmv-thumb-gap: 8px;
+	--jcmv-thumb-pas: calc(var(--jcmv-thumb) + 2 * var(--jcmv-thumb-bord) + var(--jcmv-thumb-gap));
+
 	display: none;
+	box-sizing: border-box;
 	list-style: none;
-	margin: 0;
-	padding: var(--wp--preset--spacing--20, 8px);
-	gap: var(--wp--preset--spacing--20, 8px);
-	justify-content: center;
+	padding: var(--jcmv-thumb-gap);
+	gap: var(--jcmv-thumb-gap);
+
+	/*
+	 * Centrage par `fit-content` et marges automatiques, sans `justify-content`,
+	 * et ce n'est pas un détour.
+	 *
+	 * Sur un conteneur qui déborde, un centrage ordinaire répartit le
+	 * dépassement des DEUX côtés : la première vignette part en défilement
+	 * négatif et devient inatteignable, puisqu'on ne remonte pas avant
+	 * l'origine. `safe center` corrige exactement ça — mais un moteur qui
+	 * ignore le mot-clé retombe sur le centrage ordinaire, c'est-à-dire sur la
+	 * panne elle-même. Un repli qui reproduit le bug n'est pas un repli.
+	 *
+	 * `fit-content` donne le même rendu sans dépendre d'aucun mot-clé : sous le
+	 * seuil, la bande se réduit à son contenu et les marges automatiques la
+	 * centrent ; au-delà, `max-width` la plafonne et le contenu part de
+	 * l'origine, donc atteignable.
+	 */
+	width: fit-content;
+	max-width: min(
+		100%,
+		calc(4.5 * var(--jcmv-thumb-pas) + 1.5 * var(--jcmv-thumb-gap))
+	);
+	margin: 0 auto;
+
+	overflow-x: auto;
+	overflow-y: hidden;
+	/* Au bout de la bande, ne pas embrayer sur le geste de retour de page. */
+	overscroll-behavior-x: contain;
+	scroll-behavior: smooth;
+	/* Sans quoi la vignette amenée dans le champ vient se coller au bord et
+	   paraît coupée alors qu'elle est entière. */
+	scroll-padding-inline: var(--jcmv-thumb-gap);
+
+	/*
+	 * Barre de défilement masquée, et à contrecœur : elle aurait dit COMBIEN il
+	 * reste. Mais là où elle n'est pas en surimpression — Windows, la plupart
+	 * des Linux — elle occupe une dizaine de pixels de hauteur, et seulement
+	 * sur les cartes qui débordent. Elle rallongeait donc les cartes à cinq
+	 * photos et plus, décalant leurs titres : exactement le défaut que cette
+	 * bande toujours rendue existe pour supprimer, simplement déplacé du seuil
+	 * « une photo / plusieurs » au seuil « quatre / cinq ».
+	 *
+	 * `scrollbar-gutter: stable` réserverait la place en permanence, mais son
+	 * application à une barre HORIZONTALE est bien moins établie que pour la
+	 * verticale. La vignette coupée reste le signal, comme décidé.
+	 */
+	scrollbar-width: none;
+}
+
+.jcmv-shop__thumbs::-webkit-scrollbar {
+	display: none;
 }
 
 /* Révélées seulement si view.js s'exécute (voir l'en-tête du script). */
@@ -112,15 +184,16 @@
 	display: flex;
 }
 
+/* Dans une zone qui défile, les vignettes ne doivent ni s'étirer ni se tasser. */
 .jcmv-shop__thumb-item {
 	margin: 0;
-	min-width: 0;
+	flex: 0 0 auto;
 }
 
 .jcmv-shop__thumb {
 	display: block;
 	padding: 0;
-	border: 2px solid transparent;
+	border: var(--jcmv-thumb-bord, 2px) solid transparent;
 	border-radius: var(--wp--custom--radius--small, 6px);
 	background: none;
 	cursor: pointer;
@@ -128,10 +201,19 @@
 	overflow: hidden;
 }
 
+/*
+ * Vignette d'un produit qui n'a qu'une photo : elle occupe la place pour que
+ * les titres s'alignent d'une carte à l'autre, mais elle ne commande rien.
+ * Le curseur ne doit donc rien promettre.
+ */
+.jcmv-shop__thumb--inerte {
+	cursor: default;
+}
+
 .jcmv-shop__thumb img {
 	display: block;
-	width: 44px;
-	height: 44px;
+	width: var(--jcmv-thumb, 44px);
+	height: var(--jcmv-thumb, 44px);
 	object-fit: cover;
 }
 
@@ -295,5 +377,9 @@
 @media (prefers-reduced-motion: reduce) {
 	.jcmv-shop__photo {
 		transition: none;
+	}
+
+	.jcmv-shop__thumbs {
+		scroll-behavior: auto;
 	}
 }

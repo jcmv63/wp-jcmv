@@ -41,6 +41,37 @@ final class ProduitMetabox {
 	/** Nonce propre à la boîte « Photos complémentaires » (voir nonce_ok()). */
 	private const NONCE_PHOTOS = 'jcmv_produit_photos_nonce';
 
+
+
+	/**
+	 * Gabarits des libellés de flèches d'ordre, où %d est le rang de la photo.
+	 *
+	 * Le rang n'est pas un ornement. Sans lui, les vingt-quatre boutons d'une
+	 * galerie de douze photos portent deux libellés seulement, répétés à
+	 * l'identique, et les vignettes sont en alt="" : à la synthèse vocale, rien
+	 * ne distinguerait la troisième photo de la septième.
+	 *
+	 * Il tient aussi lieu de compte rendu. Après un déplacement, le focus reste
+	 * sur le bouton de la photo déplacée, dont le nom vient de changer — le
+	 * lecteur d'écran annonce donc le nouveau rang de lui-même, sans qu'on ait à
+	 * ajouter une région aria-live pour le dire.
+	 *
+	 * Une méthode plutôt que deux constantes : les mêmes chaînes servent au
+	 * rendu serveur et au script, deux copies divergeraient au premier
+	 * ajustement de formulation — et une constante de classe ne peut pas
+	 * appeler __(), ce qui les sortirait du fichier de traduction.
+	 *
+	 * @return array{gauche:string, droite:string}
+	 */
+	private static function libelles_ordre(): array {
+		return array(
+			/* translators: %d : rang de la photo dans la galerie. */
+			'gauche' => __( 'Déplacer la photo %d vers la gauche', 'wp-jcmv' ),
+			/* translators: %d : rang de la photo dans la galerie. */
+			'droite' => __( 'Déplacer la photo %d vers la droite', 'wp-jcmv' ),
+		);
+	}
+
 	public static function register(): void {
 		add_action( 'add_meta_boxes_' . PostTypes::PRODUIT, array( self::class, 'add' ) );
 		add_action( 'save_post_' . PostTypes::PRODUIT, array( self::class, 'save' ) );
@@ -108,6 +139,8 @@ final class ProduitMetabox {
 					'retirer'     => __( 'Retirer', 'wp-jcmv' ),
 					'mediaTitle'  => __( 'Photos du produit', 'wp-jcmv' ),
 					'mediaButton' => __( 'Utiliser ces photos', 'wp-jcmv' ),
+					'versGauche'  => self::libelles_ordre()['gauche'],
+					'versDroite'  => self::libelles_ordre()['droite'],
 				),
 			)
 		);
@@ -312,24 +345,57 @@ final class ProduitMetabox {
 	}
 
 	public static function render_photos( \WP_Post $post ): void {
-		$galerie = PostTypes::sanitize_gallery( get_post_meta( $post->ID, 'jcmv_produit_galerie', true ) );
+		$galerie  = PostTypes::sanitize_gallery( get_post_meta( $post->ID, 'jcmv_produit_galerie', true ) );
+		$libelles = self::libelles_ordre();
 		wp_nonce_field( self::NONCE_PHOTOS, self::NONCE_PHOTOS );
 		?>
 		<p class="description">
 			<?php
 			printf(
 				/* translators: %d : nombre maximum de photos complémentaires. */
-				esc_html__( 'La photo principale se règle dans « Image mise en avant » : sans elle, le produit n\'apparaît pas sur le site. Jusqu\'à %d photos complémentaires peuvent être ajoutées ici (dos, détail du flocage).', 'wp-jcmv' ),
+				esc_html__( 'La photo principale se règle dans « Image mise en avant » : sans elle, le produit n\'apparaît pas sur le site. Jusqu\'à %d photos complémentaires peuvent être ajoutées ici (dos, détail du flocage, autres coloris).', 'wp-jcmv' ),
 				(int) PostTypes::GALERIE_MAX
 			);
 			?>
 		</p>
 
+		<p class="description">
+			<?php esc_html_e( 'L\'ordre ci-dessous est celui du site : l\'image mise en avant vient en premier, ces photos la suivent dans cet ordre. Les flèches permettent de le corriger sans tout resélectionner.', 'wp-jcmv' ); ?>
+		</p>
+
 		<div id="jcmv-galerie" class="jcmv-galerie" data-max="<?php echo esc_attr( (string) PostTypes::GALERIE_MAX ); ?>">
 			<ul class="jcmv-galerie__liste" id="jcmv-galerie-liste">
-				<?php foreach ( $galerie as $attachment_id ) : ?>
+				<?php foreach ( $galerie as $jcmv_rang => $attachment_id ) : ?>
 					<li class="jcmv-galerie__item" data-id="<?php echo esc_attr( (string) $attachment_id ); ?>">
 						<?php echo wp_get_attachment_image( $attachment_id, 'thumbnail', false, array( 'alt' => '' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- échappé par wp_get_attachment_image(). ?>
+
+						<?php
+						/*
+						 * Des boutons, et pas un glisser-déposer : le RGAA exige
+						 * de toute façon une alternative à un seul pointeur pour
+						 * toute action au glissement, donc les flèches seraient
+						 * à écrire en plus, jamais à la place. Elles se
+						 * comportent à l'identique à la souris, au doigt et au
+						 * clavier, et ne coûtent aucune dépendance. On réordonne
+						 * une galerie une fois, à la création de la fiche : le
+						 * glissement pourra s'ajouter par-dessus si le besoin se
+						 * fait sentir à l'usage.
+						 *
+						 * L'état désactivé aux extrémités et le rang inscrit
+						 * dans le libellé sont posés ici ET tenus à jour par le
+						 * script : le serveur rend l'état initial, le script le
+						 * maintient à chaque déplacement.
+						 */
+						?>
+						<p class="jcmv-galerie__ordre">
+							<button type="button" class="button jcmv-galerie__deplacer" data-jcmv-sens="-1"
+								aria-label="<?php echo esc_attr( sprintf( $libelles['gauche'], $jcmv_rang + 1 ) ); ?>"
+								<?php disabled( 0 === $jcmv_rang ); ?>>&larr;</button>
+							<button type="button" class="button jcmv-galerie__deplacer" data-jcmv-sens="1"
+								aria-label="<?php echo esc_attr( sprintf( $libelles['droite'], $jcmv_rang + 1 ) ); ?>"
+								<?php disabled( count( $galerie ) - 1 === $jcmv_rang ); ?>>&rarr;</button>
+						</p>
+
 						<button type="button" class="button-link jcmv-galerie__retirer">
 							<?php esc_html_e( 'Retirer', 'wp-jcmv' ); ?>
 						</button>
@@ -348,7 +414,11 @@ final class ProduitMetabox {
 		</div>
 
 		<p class="description">
-			<?php esc_html_e( 'Les photos sont recadrées au format portrait pour que toutes les vignettes du catalogue s\'alignent : cadrer le produit au centre, et privilégier un fond uni.', 'wp-jcmv' ); ?>
+			<?php esc_html_e( 'Les photos sont recadrées pour que toutes les vignettes du catalogue s\'alignent : format portrait 4:5, idéalement 1200 × 1500 px, le produit cadré au centre sur fond uni.', 'wp-jcmv' ); ?>
+		</p>
+
+		<p class="description">
+			<?php esc_html_e( 'Un autre format reste accepté, mais il sera rogné en son centre — et la photo s\'affichera moins nette sur les écrans à haute densité, car WordPress ne peut alors produire aucune déclinaison intermédiaire.', 'wp-jcmv' ); ?>
 		</p>
 		<?php
 	}

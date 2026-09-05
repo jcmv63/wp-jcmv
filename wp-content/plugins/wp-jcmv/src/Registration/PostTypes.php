@@ -44,8 +44,16 @@ final class PostTypes {
 	 */
 	public const DISPONIBILITES = array( 'disponible', 'sur-commande', 'epuise' );
 
-	/** Nombre de photos de galerie en plus de l'image mise en avant. */
-	public const GALERIE_MAX = 3;
+	/**
+	 * Nombre de photos de galerie en plus de l'image mise en avant.
+	 *
+	 * Passé de 3 à 12 le 2026-09-04. Le 3 protégeait la lisibilité de la
+	 * rangée de vignettes, qui ne défilait pas : douze miniatures de 44 px ne
+	 * tenaient pas dans une carte. Depuis que la bande défile, ce n'est plus
+	 * elle qu'il faut protéger — le plafond ne sert qu'à empêcher l'absurde,
+	 * une sélection ratée dans la médiathèque partant à deux cents images.
+	 */
+	public const GALERIE_MAX = 12;
 
 	public static function register(): void {
 		/*
