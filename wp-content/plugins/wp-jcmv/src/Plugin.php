@@ -42,6 +42,12 @@ final class Plugin {
 		Front\Blocks::register();
 		Front\CalendarFeed::register();
 		Front\EventsWidget::register();
+		Front\EventAgeMeta::register();
+
+		// Hors du bloc is_admin() plus bas : la file d'attente de
+		// l'importateur CSV de TEC peut être vidée par wp-cron, hors contexte
+		// d'administration. Un filtre et une action, rien de plus.
+		Integration\TecImport::register();
 
 		// Priorité tardive : les règles de CalendarFeed sont ajoutées sur `init`
 		// en priorité par défaut, elles doivent exister avant le flush.

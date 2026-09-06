@@ -742,6 +742,55 @@ b {
 	color: var(--wp--preset--color--accent-2);
 }
 
+/*
+ * Catégories d'âge des événements : vue Liste et bloc « Détails » de la fiche.
+ * Nos classes sur notre propre balisage, injecté par Front\EventAgeMeta : la
+ * règle de la section suivante — ne toucher aux sélecteurs de TEC sous aucun
+ * prétexte — n'est pas écornée, aucun `.tribe-*` n'est visé ici, pas même
+ * comme ancêtre. Ce qui distingue les deux emplacements passe par un
+ * modificateur à nous.
+ */
+.jcmv-event-ages {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+/*
+ * `order` n'est pas décoratif : TEC pose
+ * `.tribe-events-calendar-list__event-header{display:flex;flex-direction:column}`
+ * et numérote ses enfants — date 1, titre 2, lieu 3, catégories 4. Sans
+ * consigne, notre liste vaut 0 et passe donc AVANT la date et le titre. À 3,
+ * elle est à égalité avec le lieu et l'ordre du DOM départage : titre, puis
+ * badges, puis lieu.
+ */
+.jcmv-event-ages--list {
+	order: 3;
+	margin-top: var(--tec-spacer-2, 8px);
+}
+
+/*
+ * Dans le bloc « Détails », l'intitulé et sa valeur sont deux blocs
+ * superposés : il ne faut qu'un filet d'air, pas l'interligne de la liste.
+ */
+.jcmv-event-ages--meta {
+	margin-top: 4px;
+}
+
+/*
+ * TEC remet à zéro marges et paddings de tout ce qui vit sous
+ * `.tribe-common` — `.tribe-common li{margin:0;padding:0}`, spécificité 0,1,1
+ * contre 0,1,0 pour `.jcmv-badge`. Le composant perd donc son padding dans le
+ * calendrier, et seulement là. On le rétablit par une règle à deux classes
+ * plutôt qu'en gonflant `.jcmv-badge`, qui reste juste partout ailleurs.
+ */
+.jcmv-event-ages .jcmv-badge {
+	padding: 4px 12px;
+}
+
 /* ---------- The Events Calendar (reprise à la charte) ---------- */
 
 /*
