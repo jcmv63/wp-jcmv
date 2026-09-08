@@ -130,7 +130,9 @@
 	border-radius: var(--wp--custom--radius--small, 6px);
 }
 
-.jcmv-abo__bouton:hover {
+.jcmv-abo__bouton.jcmv-abo__bouton:hover,
+.jcmv-abo__bouton.jcmv-abo__bouton:focus-visible {
+	color: var(--wp--custom--color--blanc, #fff);
 	filter: brightness(0.92);
 }
 
