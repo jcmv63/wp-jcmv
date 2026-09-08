@@ -29,6 +29,13 @@ parameters:
     scanDirectories:
         - /var/www/html/wp-includes
         - /var/www/html/wp-admin/includes
+        # The Events Calendar, pour la même raison que le cœur : `Front\EventLinks`
+        # appelle ses fonctions de gabarit (`tribe_get_address()` et voisines).
+        # Sans ce parcours, PHPStan les signale comme fonctions inconnues — la
+        # classe d'erreur détectée dès le niveau 0, celle qui a produit le
+        # `easc_html_e`. Parcouru, pas analysé : les défauts du plugin ne
+        # remontent pas.
+        - /var/www/html/wp-content/plugins/the-events-calendar
 
     excludePaths:
         analyseAndScan:

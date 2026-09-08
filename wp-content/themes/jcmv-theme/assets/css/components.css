@@ -897,6 +897,334 @@ b {
     max-width:100%; height:auto;
 }
 
+/*
+ * Largeur du pied de fiche (Détails, Lieu, Organisateur).
+ *
+ * Deuxième exception assumée à la règle « variables, pas sélecteurs ». Elle
+ * tient en une propriété, `flex-grow`, mais posée à DEUX niveaux — et il faut
+ * bien les deux : mesuré dans le navigateur, ne corriger que les groupes ne
+ * change rigoureusement rien.
+ *
+ * 1. LA SECTION. `.type-tribe_events` est un conteneur flex en ligne
+ *    (`tribe-events-single-skeleton.css`), et TEC pose `width: auto` sur ses
+ *    sections de méta au-delà de 768 px — pour que « primary » et « secondary »
+ *    tiennent côte à côte le jour où le lieu est sorti à part. Or une section
+ *    en `width: auto` dans une rangée flex se dimensionne sur son contenu :
+ *    avec une seule section — le cas normal, le club n'embarquant pas de
+ *    carte — le pied occupait 284 px sur les 1048 disponibles. Tout le vide de
+ *    la fiche venait de là, et non de la répartition interne des colonnes.
+ *
+ * 2. LES GROUPES. `.tribe-events-event-meta` est DÉJÀ un conteneur flex, mais
+ *    ses groupes portent `width: 33.3333%` avec le `flex-grow: 0` par défaut :
+ *    ils occupent leur tiers et ne grandissent jamais. Une fois la section
+ *    élargie, il reste donc à leur dire de se partager la place — deux groupes
+ *    prennent 50 %, trois en prennent 33 %, sans rien avoir à basculer.
+ *
+ * `min-width` déclenche le passage à la ligne sur petit écran : `flex-wrap`
+ * est déjà posé par TEC, mais sans plancher les groupes rétrécissent
+ * indéfiniment.
+ *
+ * `max-width` répare un effet de bord du `flex-grow` : un groupe seul sur sa
+ * rangée prendrait sinon toute la largeur, et un événement sans lieu n'a que
+ * le groupe « Détails ». Le plafond vaut la moitié de la largeur de contenu du
+ * thème — deux groupes la remplissent exactement, un groupe seul s'arrête au
+ * milieu — et ne mord jamais sur mobile, où la place est déjà sous le plafond.
+ *
+ * Le `float: left` que TEC pose sur ces groupes est sans effet : un enfant de
+ * conteneur flex ne flotte pas.
+ *
+ * Aucune valeur de TEC n'est écrasée : on ajoute des propriétés qu'il n'a pas
+ * posées. Mesuré sur TEC 6.17.1, fenêtre 1728 px — section 1048 px, un groupe
+ * 540, deux groupes 500 chacun, trois groupes 325 chacun.
+ */
+.tribe-events-single .tribe-events-event-meta.primary,
+.tribe-events-single .tribe-events-event-meta.secondary {
+	flex-grow: 1;
+}
+
+.tribe-events-event-meta.tribe-events-event-meta .tribe-events-meta-group {
+	flex-grow: 1;
+	min-width: 260px;
+	max-width: calc(var(--wp--style--global--content-size, 1080px) / 2);
+}
+
+/*
+ * Lien « Ouvrir l'itinéraire » du bloc Lieu. Notre classe sur notre propre
+ * balisage (Front\EventLinks) : aucun `.tribe-*` n'est visé, pas même comme
+ * ancêtre. Le lien reste un lien — c'est une sortie vers une application
+ * tierce, pas une action de la page.
+ *
+ * `block` et non `inline-block`, et c'est un correctif, pas une préférence :
+ * TEC place ce lien DANS son `<address>`, juste après le code postal. En
+ * `inline-block`, il partageait la ligne de « Saint-Marcel, 71380 » et sa
+ * marge haute gonflait la hauteur de cette ligne — d'où le trou qui
+ * apparaissait ENTRE la rue et la ville, là où personne n'avait rien demandé.
+ * En bloc, le lien prend sa propre ligne et sa marge redevient une marge.
+ *
+ * `width: fit-content` pour que la zone cliquable s'arrête au texte : un lien
+ * en bloc s'étendrait sur toute la largeur de la colonne.
+ */
+.jcmv-event-directions {
+	display: block;
+	width: fit-content;
+	margin-top: var(--wp--preset--spacing--40);
+	font-weight: 600;
+}
+
+/* ---------- Fiche événement : bandeau et barre d'actions ---------- */
+
+/*
+ * Ce que le bandeau remplace, et à ce titre seulement : le lien de retour de
+ * TEC, sa ligne de date sous le titre, et son menu « Ajouter au calendrier ».
+ * Les trois sont repris dans `Front\EventHeader`, avec les mêmes destinations.
+ * Retirer une de ces trois lignes fait réapparaître l'élément d'origine.
+ *
+ * Classes doublées, et pas par précaution : TEC déclare
+ * `.single-tribe_events .tribe-events-c-subscribe-dropdown__container{display:flex}`
+ * en 0,2,0, exactement la spécificité d'une règle simple ici — et sa feuille
+ * est chargée après la nôtre, donc c'est elle qui gagnait. Constaté sur la
+ * page, pas déduit.
+ */
+.single-tribe_events .tribe-events-back.tribe-events-back,
+.single-tribe_events .tribe-events-schedule.tribe-events-schedule,
+.single-tribe_events .tribe-events-c-subscribe-dropdown__container.tribe-events-c-subscribe-dropdown__container {
+	display: none;
+}
+
+/*
+ * Sortie de conteneur (« bord à bord »).
+ *
+ * La fiche est rendue par TEC à l'intérieur du gabarit contraint du thème ;
+ * le bandeau doit pourtant filer d'un bord à l'autre de la fenêtre, comme
+ * celui de l'archive Événements. La marge négative annule la largeur du
+ * conteneur, le padding symétrique remet le contenu exactement là où il
+ * était : rien à recalculer si `contentSize` change dans theme.json.
+ *
+ * `100vw` compte la barre de défilement quand le système en affiche une
+ * permanente — Windows, Linux, macOS réglé ainsi — et ces deux blocs
+ * dépasseraient alors d'une quinzaine de pixels vers la droite. D'où le
+ * `overflow-x: clip` de la règle suivante, sans lequel la page entière
+ * gagnerait une barre de défilement horizontale.
+ */
+.jcmv-event-header,
+.jcmv-event-actions {
+	margin-inline: calc(50% - 50vw);
+	padding-inline: calc(50vw - 50%);
+}
+
+/*
+ * `clip` et non `hidden` : `hidden` ferait de la racine du site un conteneur
+ * de défilement, ce qui casserait toute position `sticky` posée à l'intérieur.
+ * `clip` coupe le débordement sans rien créer de tel.
+ */
+.wp-site-blocks {
+	overflow-x: clip;
+}
+
+/*
+ * Le bandeau doit toucher la navigation, comme celui de l'archive Événements.
+ * Deux espacements s'y opposaient : les 40 px de padding que TEC met en tête
+ * de sa page, et l'écart entre blocs de racine du thème (1.2 rem) hérité par
+ * le conteneur de la fiche. Les deux sont pensés pour une page qui commence
+ * par du texte, pas par un aplat de couleur pleine largeur.
+ *
+ * Annulés pour la seule fiche événement : tout ce qui suit le bandeau porte
+ * déjà son propre espacement, et les autres vues du calendrier gardent le
+ * leur. Seul le padding HAUT tombe — celui du bas sépare la fiche du pied de
+ * page et reste utile.
+ *
+ * L'identifiant plutôt que la classe pour le conteneur de page : la règle de
+ * TEC vise `#tribe-events-pg-template`, et une classe, fût-elle doublée, ne
+ * passe jamais devant un identifiant. Mesuré sur la page — la version en
+ * `.tribe-events-pg-template` laissait les 40 px en place.
+ */
+.single-tribe_events #tribe-events-pg-template,
+.single-tribe_events .tec-block__single-event {
+	margin-top: 0;
+	padding-top: 0;
+}
+
+.jcmv-event-header {
+	background: var(--wp--preset--color--accent-4);
+	color: var(--wp--preset--color--base);
+	padding-block: var(--wp--preset--spacing--60) var(--wp--preset--spacing--70);
+}
+
+.jcmv-event-header__back {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	color: #c4c8d2;
+	font-size: var(--wp--preset--font-size--small);
+	font-weight: 600;
+	text-decoration: none;
+}
+
+.jcmv-event-header__back:hover,
+.jcmv-event-header__back:focus-visible {
+	color: var(--wp--preset--color--base);
+}
+
+.jcmv-event-ages--header {
+	margin: var(--wp--preset--spacing--50) 0 var(--wp--preset--spacing--40);
+}
+
+/*
+ * Le titre. TEC pose `font-family: var(--tec-font-family-sans-serif)` sur
+ * `.tribe-events-single-event-title`, et components.css branche cette variable
+ * sur la police de CORPS du thème — c'est voulu pour le calendrier, mais ça
+ * faisait du titre de fiche le seul grand titre du site en Archivo minuscules.
+ * On le remet à la charte ici.
+ *
+ * Classe doublée : la règle de TEC la plus forte est en 0,2,0
+ * (`.single-tribe_events .tribe-events-single-event-title`) et l'ordre de
+ * chargement des deux feuilles n'est garanti nulle part.
+ */
+.jcmv-event-header .jcmv-event-header__title.jcmv-event-header__title {
+	margin: 0;
+	color: var(--wp--preset--color--base);
+	font-family: var(--wp--preset--font-family--display);
+	font-size: var(--wp--preset--font-size--huge);
+	font-weight: 700;
+	line-height: 0.98;
+	text-transform: uppercase;
+	text-wrap: pretty;
+}
+
+.jcmv-event-header__facts {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px var(--wp--preset--spacing--60);
+	margin-top: var(--wp--preset--spacing--50);
+}
+
+.jcmv-event-header__fact {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	font-size: var(--wp--preset--font-size--large);
+	font-weight: 600;
+}
+
+.jcmv-event-header__fact--secondaire {
+	color: #c4c8d2;
+	font-weight: 400;
+}
+
+.jcmv-event-header__fact .jcmv-icone,
+.jcmv-event-header__back .jcmv-icone {
+	color: var(--wp--preset--color--accent-1);
+}
+
+.jcmv-event-header__back .jcmv-icone {
+	color: inherit;
+}
+
+/* ---------- Barre d'actions ---------- */
+
+.jcmv-event-actions {
+	background: var(--wp--preset--color--base);
+	border-bottom: 1px solid var(--wp--preset--color--accent-6);
+	padding-block: var(--wp--preset--spacing--50);
+}
+
+.jcmv-event-actions__inner {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--wp--preset--spacing--40);
+}
+
+/*
+ * Les trois actions partagent la typographie de bouton de la charte. On ne
+ * passe pas par `wp-element-button` : ces liens sont produits par le plugin,
+ * hors de tout bloc, et hériteraient d'une cascade qu'on ne maîtrise pas ici.
+ */
+.jcmv-event-actions__primary,
+.jcmv-event-actions__secondary,
+.jcmv-event-actions__link {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	border-radius: 8px;
+	font-family: var(--wp--preset--font-family--display);
+	font-size: 14px;
+	font-weight: 600;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	text-decoration: none;
+}
+
+.jcmv-event-actions__primary {
+	padding: 13px 26px;
+	background: var(--wp--preset--color--accent-1);
+	color: var(--wp--preset--color--base);
+}
+
+.jcmv-event-actions__primary:hover,
+.jcmv-event-actions__primary:focus-visible {
+	background: var(--wp--preset--color--accent-2);
+	color: var(--wp--preset--color--base);
+}
+
+.jcmv-event-actions__secondary {
+	padding: 11px 24px;
+	border: 2px solid currentColor;
+	color: var(--wp--preset--color--accent-1);
+}
+
+.jcmv-event-actions__secondary:hover,
+.jcmv-event-actions__secondary:focus-visible {
+	color: var(--wp--preset--color--accent-2);
+}
+
+.jcmv-event-actions__link {
+	color: var(--wp--preset--color--contrast);
+	text-transform: none;
+	letter-spacing: 0;
+	font-family: var(--wp--preset--font-family--corps);
+	font-size: var(--wp--preset--font-size--medium);
+}
+
+.jcmv-event-actions__link:hover,
+.jcmv-event-actions__link:focus-visible {
+	color: var(--wp--preset--color--accent-1);
+}
+
+.jcmv-icone {
+	width: 18px;
+	height: 18px;
+	flex: none;
+}
+
+.jcmv-event-header__fact .jcmv-icone {
+	width: 20px;
+	height: 20px;
+}
+
+/*
+ * Mobile : les actions s'empilent et prennent toute la largeur. La cible
+ * tactile ne descend jamais sous 44 px (RGAA / recommandations tactiles),
+ * ce que le padding assure déjà — `min-height` le garantit même si un
+ * libellé venait à rétrécir.
+ */
+@media (max-width: 600px) {
+	.jcmv-event-actions__inner {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.jcmv-event-actions__primary,
+	.jcmv-event-actions__secondary {
+		justify-content: center;
+		min-height: 48px;
+	}
+
+	.jcmv-event-actions__link {
+		min-height: 44px;
+	}
+}
+
 /* ---------- Widget « Événements à venir » (bloc Events List) ---------- */
 
 /*

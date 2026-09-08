@@ -43,6 +43,8 @@ final class Plugin {
 		Front\CalendarFeed::register();
 		Front\EventsWidget::register();
 		Front\EventAgeMeta::register();
+		Front\EventLinks::register();
+		Front\EventHeader::register();
 
 		// Hors du bloc is_admin() plus bas : la file d'attente de
 		// l'importateur CSV de TEC peut être vidée par wp-cron, hors contexte

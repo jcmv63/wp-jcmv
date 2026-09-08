@@ -155,10 +155,15 @@ final class EventAgeMeta {
 	 * de la vue amorce le cache des termes de toute la page
 	 * (`update_post_term_cache`, actif par défaut).
 	 *
-	 * @param int|false $post_id Événement, ou false hors de la boucle.
+	 * Publique parce que `Front\\EventHeader` en a besoin pour ses badges de
+	 * bandeau : deux emplacements de plus, et la même règle de tri. Dupliquer
+	 * six lignes de logique métier pour préserver un `private` serait un
+	 * mauvais échange.
+	 *
+	 * @param int|false|null $post_id Événement, ou false hors de la boucle.
 	 * @return string[]
 	 */
-	private static function names_for( $post_id ): array {
+	public static function names_for( $post_id ): array {
 		if ( ! $post_id ) {
 			return array();
 		}
