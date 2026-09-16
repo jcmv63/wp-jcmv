@@ -41,6 +41,7 @@ final class Plugin {
 		Rest\SeasonsController::register();
 		Front\Blocks::register();
 		Front\CalendarFeed::register();
+		Front\IcalAllDay::register();
 		Front\EventsWidget::register();
 		Front\EventAgeMeta::register();
 		Front\EventLinks::register();

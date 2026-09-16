@@ -275,6 +275,51 @@ concentrée en un seul point d'appel et donc facile à réauditer.
 - La base `/agenda/` déconseille de créer une arborescence de pages sous ce slug, dont les
   enfants seraient masqués par la règle de réécriture.
 
+## Addendum (2026-09-16) : événements « toute la journée »
+
+### Constat
+
+Un événement coché « Évènement sur toute la journée » sortait du flux avec une partie
+horaire (`DTSTART;TZID=Europe/Paris:20260926T000000` / `DTEND;…T235959`) au lieu de la
+forme RFC 5545 §3.6.1 (`DTSTART;VALUE=DATE:20260926` / `DTEND;VALUE=DATE:20260927`). Les
+clients l'affichaient comme un créneau de 00:00 à 23:59 plutôt qu'en bandeau, avec un
+risque de débordement sur deux jours pour un appareil dans un autre fuseau.
+
+En production, `_EventAllDay` valait `1` pour les **27** événements journée entière, et
+`yes` pour aucun.
+
+### Cause : incohérence interne à TEC (6.17.4)
+
+- `src/Tribe/Editor/Meta.php` déclare `_EventAllDay` en méta **booléenne**, nettoyée par
+  `filter_var( FILTER_VALIDATE_BOOLEAN )`. WordPress applique ce nettoyage à **toute**
+  écriture de la méta : le `yes` du formulaire est stocké `1`.
+- `src/Tribe/iCal.php` (`get_ical_output_for_an_event()`) teste
+  `'yes' === get_post_meta(…)` : jamais vrai.
+- Le reste de TEC (`tribe_event_is_all_day()`) accepte `yes`, `true` et `1` : l'admin et
+  le site étaient justes, seul l'export iCal se trompait.
+
+Ce n'est pas un effet de notre délégation à `generate_ical_feed()` : l'export unitaire de
+la fiche événement avait le même défaut.
+
+### Correctif : `src/Front/IcalAllDay.php` (wp-jcmv 0.5.3)
+
+Filtre public `tribe_ical_feed_item` : si `tribe_event_is_all_day()` est vrai, `DTSTART`
+et `DTEND` sont réécrits en `VALUE=DATE` à partir de la partie date de `_EventStartDate` /
+`_EventEndDate`, `DTEND` étant le lendemain du dernier jour (borne exclusive, ce qui couvre
+aussi les événements sur plusieurs jours). L'UID est inchangé : les abonnés voient
+l'événement mis à jour, pas dupliqué. La montée de version invalide l'`ETag` des flux.
+
+Options écartées :
+
+- **Réécrire la méta en `yes`** : inutile, la sauvegarde suivante remet `1`.
+- **Forcer `yes` au nettoyage** (`sanitize_post_meta__EventAllDay`) : contredit la
+  déclaration booléenne dont dépend l'éditeur de blocs et la REST.
+
+Le filtre laisse passer un `DTSTART` déjà en `VALUE=DATE` : si TEC corrige son test, il
+devient inerte et pourra être retiré. **À revérifier à chaque montée de version de TEC.**
+Le défaut mérite d'être signalé à StellarWP (utiliser `tribe_event_is_all_day()` dans
+l'export iCal).
+
 ## Actions
 
 - [ ] Vérifier que `/agenda` est libre en production (hygiène, non bloquant : voir la
@@ -291,3 +336,6 @@ concentrée en un seul point d'appel et donc facile à réauditer.
       Google Agenda et Outlook.
 - [ ] Documenter pour le bureau : délai de rafraîchissement, et interdiction de supprimer
       puis recréer un terme de catégorie d'âge.
+- [ ] Vérifier en production, après déploiement de 0.5.3, qu'un événement journée entière
+      sort en `VALUE=DATE` (flux `/agenda/tous.ics` et export de la fiche).
+- [ ] Signaler à StellarWP le test strict `'yes' ===` de `iCal.php` (addendum du 2026-09-16).
