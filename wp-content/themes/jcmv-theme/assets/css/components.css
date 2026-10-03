@@ -415,6 +415,52 @@ b {
 	overflow: hidden;
 }
 
+/* ---------- Carte technique (vidéo) ---------- */
+
+.jcmv-card.card-technique {
+    transition: transform .2s ease, box-shadow .2s ease;
+    position: relative;
+}
+
+/* Titre : pas de soulignement */
+.card-technique h4 a {
+    text-decoration: none;
+}
+.card-technique h4 a::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+}
+
+/* Bandeau : transition de couleur */
+.card-technique h4 {
+    transition: background-color .2s ease;
+}
+
+/* Survol (souris) ou focus (clavier) */
+.jcmv-card.card-technique:hover,
+.jcmv-card.card-technique:focus-within {
+    transform: translateY(-4px);
+    box-shadow: 0 22px 48px -16px rgba(31, 34, 43, .45);
+}
+
+.card-technique:hover h4,
+.card-technique:focus-within h4 {
+    background-color: var(--wp--preset--color--accent-1) !important;
+}
+
+/* Sans animation pour qui l'a désactivée dans son système */
+@media (prefers-reduced-motion: reduce) {
+    .jcmv-card.card-technique,
+    .card-technique h4 {
+        transition: none;
+    }
+    .jcmv-card.card-technique:hover,
+    .jcmv-card.card-technique:focus-within {
+        transform: none;
+    }
+}
+
 /* ---------- Patterns éditoriaux ---------- */
 
 /* Surtitre (kicker) — Oswald, fort interlettrage, rouge */
