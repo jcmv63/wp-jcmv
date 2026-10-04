@@ -418,8 +418,22 @@ b {
 /* ---------- Carte technique (vidéo) ---------- */
 
 .jcmv-card.card-technique {
+    display: flex;
+    flex-direction: column;
     transition: transform .2s ease, box-shadow .2s ease;
     position: relative;
+}
+
+.card-technique h4 {
+    flex: 1;
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 16px 0;
+    transition: background-color .2s ease;
 }
 
 /* Titre : pas de soulignement */
@@ -430,11 +444,6 @@ b {
     content: "";
     position: absolute;
     inset: 0;
-}
-
-/* Bandeau : transition de couleur */
-.card-technique h4 {
-    transition: background-color .2s ease;
 }
 
 /* Survol (souris) ou focus (clavier) */
