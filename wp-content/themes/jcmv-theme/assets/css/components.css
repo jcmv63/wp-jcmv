@@ -798,7 +798,8 @@ b {
 }
 
 /*
- * Catégories d'âge des événements : vue Liste et bloc « Détails » de la fiche.
+ * Catégories d'âge des événements : vue Liste, infobulle de la vue Mois et
+ * bloc « Détails » de la fiche.
  * Nos classes sur notre propre balisage, injecté par Front\EventAgeMeta : la
  * règle de la section suivante — ne toucher aux sélecteurs de TEC sous aucun
  * prétexte — n'est pas écornée, aucun `.tribe-*` n'est visé ici, pas même
@@ -833,6 +834,15 @@ b {
  */
 .jcmv-event-ages--meta {
 	margin-top: 4px;
+}
+
+/*
+ * Infobulle de la vue Mois : entre le titre et la description. Badges un
+ * peu plus serrés que dans la liste — l'infobulle est étroite.
+ */
+.jcmv-event-ages--tooltip {
+	gap: 4px;
+	margin: 8px 0 4px;
 }
 
 /*
@@ -943,6 +953,156 @@ b {
 .tribe-common--breakpoint-medium.tribe-events.tribe-events .tribe-events-l-container {
 	padding-top: var(--wp--preset--spacing--50);
 	padding-bottom: var(--wp--preset--spacing--60);
+}
+
+/*
+ * Vue Mois : les événements horaires en badge, comme les journées entières.
+ *
+ * Troisième exception assumée à la règle « variables, pas sélecteurs ». TEC
+ * dessine les événements sur la journée (ou plusieurs jours) en barre
+ * arrondie, mais les événements horaires en texte libre — heure au-dessus,
+ * titre en gras dessous — si bien qu'une même case mélangeait deux langages.
+ * On ramène les seconds à la forme des premiers : même fond, même rayon,
+ * même hauteur, même graisse, même liseré, sur une seule ligne tronquée par
+ * une ellipse. Pas d'heure dans le badge, comme dans la barre : l'horaire
+ * reste dans l'infobulle que TEC affiche au survol et sur la fiche.
+ *
+ * Les valeurs ne sont pas recopiées mais reprises des variables qu'utilise
+ * la barre (`--tec-color-background-primary-multiday` et ses déclinaisons
+ * survol / passé) : si on reteinte un jour les barres par ces variables, les
+ * badges suivent. Hauteur 19 px, rayon 9,5 px et marge basse
+ * `--tec-spacer-0` sont ceux de `.tribe-events-calendar-month__multiday-event-wrapper`.
+ *
+ * Portée : grille desktop seulement. Sous le breakpoint medium, la vue Mois
+ * n'affiche que des pastilles dans la grille et liste les événements en
+ * dessous avec un autre balisage — rien à harmoniser.
+ *
+ * Spécificité : TEC est en 0,3,0 sur `:last-child` et sur la règle
+ * `multiday-event-wrapper + calendar-event--featured` ; le préfixe
+ * `.tribe-common--breakpoint-medium.tribe-events.tribe-events` (0,3,0)
+ * place chaque règle ci-dessous au moins un cran au-dessus.
+ */
+.tribe-common--breakpoint-medium.tribe-events.tribe-events .tribe-events-calendar-month__calendar-event,
+.tribe-common--breakpoint-medium.tribe-events.tribe-events .tribe-events-calendar-month__calendar-event:first-child,
+.tribe-common--breakpoint-medium.tribe-events.tribe-events .tribe-events-calendar-month__calendar-event:last-child,
+.tribe-common--breakpoint-medium.tribe-events.tribe-events .tribe-events-calendar-month__multiday-event-wrapper + .tribe-events-calendar-month__calendar-event {
+	--jcmv-badge-bg: var(--tec-color-category-secondary, var(--tec-color-background-primary-multiday));
+	--jcmv-badge-bg-hover: var(--tec-color-category-secondary, var(--tec-color-background-primary-multiday-hover));
+	height: 19px;
+	margin: 0 0 var(--tec-spacer-0);
+	padding: 1px var(--tec-spacer-3);
+	border-radius: 9.5px;
+	overflow: hidden;
+	background-color: var(--jcmv-badge-bg);
+	background-image: linear-gradient(var(--tec-color-category-primary, transparent), var(--tec-color-category-primary, transparent));
+	background-size: 10px 100%;
+	background-repeat: no-repeat;
+	transition: var(--tec-transition-background-color);
+}
+
+.tribe-common--breakpoint-medium.tribe-events.tribe-events .tribe-events-calendar-month__calendar-event:hover,
+.tribe-common--breakpoint-medium.tribe-events.tribe-events .tribe-events-calendar-month__calendar-event:focus-within {
+	background-color: var(--jcmv-badge-bg-hover);
+}
+
+.tribe-common--breakpoint-medium.tribe-events.tribe-events .tribe-events-calendar-month__day--past .tribe-events-calendar-month__calendar-event {
+	--jcmv-badge-bg: var(--tec-color-category-secondary, var(--tec-color-background-secondary-multiday));
+	--jcmv-badge-bg-hover: var(--tec-color-category-secondary, var(--tec-color-background-secondary-multiday-hover));
+}
+
+/*
+ * Couleurs de catégorie (TEC ≥ 6.14, réglées sur chaque catégorie
+ * d'événement). TEC pose sur l'article `.tribe_events_cat-{slug}`, qui
+ * définit `--tec-color-category-primary` (liseré), `-secondary` (fond) et
+ * `-text`. Les deux premières n'ont aucune valeur par défaut sur `:root` :
+ * sans couleur choisie, les `var()` ci-dessus retombent sur le bleu des
+ * barres. Le liseré reproduit celui des barres multi-jours — un `::before`
+ * de 10 px arrondi à gauche, bord droit vertical — par une image de fond de
+ * 10 px de large : l'arrondi du badge la découpe à gauche, son bord droit
+ * reste net. Pas de pseudo-élément (le `::before` de l'article est déjà pris
+ * par TEC pour les événements « à la une »), et pas d'ombre interne : elle
+ * suivrait l'arrondi des deux côtés et dessinerait un croissant. La couleur
+ * de fond reste libre pour le survol.
+ *
+ * `frontend-category.css` habille aussi l'intérieur de l'événement horaire
+ * (fond, bordure gauche de 3 px, padding sur `__calendar-event-details`) :
+ * on le neutralise, c'est le badge entier qui porte la couleur.
+ */
+.tribe-common--breakpoint-medium.tribe-events.tribe-events .tribe-events-calendar-month__calendar-event .tribe-events-calendar-month__calendar-event-details {
+	padding: 0;
+	border-left: 0;
+	background-color: transparent;
+}
+
+/*
+ * Le liseré vertical des événements « à la une » (`:before`, à 7 px du bord)
+ * tomberait au milieu du badge ; l'icône étoile, qui vit dans le bloc de
+ * l'heure, suffit à les signaler — comme dans la barre. L'image à la une n'a évidemment pas sa place sur 19 px.
+ */
+.tribe-common--breakpoint-medium.tribe-events.tribe-events .tribe-events-calendar-month__calendar-event--featured::before,
+.tribe-common--breakpoint-medium.tribe-events.tribe-events .tribe-events-calendar-month__calendar-event-featured-image-wrapper {
+	display: none;
+}
+
+/* Étoile éventuelle et titre côte à côte, sur une ligne. */
+.tribe-common--breakpoint-medium.tribe-events.tribe-events .tribe-events-calendar-month__calendar-event-details {
+	display: flex;
+	align-items: center;
+	gap: 0.4em;
+	min-width: 0;
+	height: 100%;
+	white-space: nowrap;
+}
+
+.tribe-common--breakpoint-medium.tribe-events.tribe-events .tribe-events-calendar-month__calendar-event-datetime {
+	flex: none;
+	line-height: inherit;
+}
+
+/*
+ * Pas d'heure. Le bloc de l'heure porte aussi l'étoile des événements « à la
+ * une » : on le garde pour ceux-là en n'y masquant que les heures, et on le
+ * retire entièrement pour les autres — vide, il resterait un élément flex
+ * et décalerait le titre de la largeur du `gap`.
+ */
+.tribe-common--breakpoint-medium.tribe-events.tribe-events .tribe-events-calendar-month__calendar-event:not(.tribe-events-calendar-month__calendar-event--featured) .tribe-events-calendar-month__calendar-event-datetime,
+.tribe-common--breakpoint-medium.tribe-events.tribe-events .tribe-events-calendar-month__calendar-event-datetime time,
+.tribe-common--breakpoint-medium.tribe-events.tribe-events .tribe-events-calendar-month__calendar-event-datetime-separator {
+	display: none;
+}
+
+/*
+ * Graisse normale, comme le titre de la barre. Le gras vient du lien : le
+ * thème pose `font-weight: 600` sur tous les `a` (theme.json, styles des
+ * éléments) — d'où le `font-weight: inherit` sur le lien plus bas.
+ */
+.tribe-common--breakpoint-medium.tribe-events.tribe-events .tribe-events-calendar-month__calendar-event-title {
+	flex: 1 1 auto;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	font-weight: var(--tec-font-weight-regular);
+}
+
+.tribe-common--breakpoint-medium.tribe-events.tribe-events .tribe-events-calendar-month__calendar-event .tribe-events-calendar-month__calendar-event-title-link,
+.tribe-common--breakpoint-medium.tribe-events.tribe-events .tribe-events-calendar-month__calendar-event .tribe-events-calendar-month__calendar-event-title-link:hover,
+.tribe-common--breakpoint-medium.tribe-events.tribe-events .tribe-events-calendar-month__calendar-event .tribe-events-calendar-month__calendar-event-title-link:focus,
+.tribe-common--breakpoint-medium.tribe-events.tribe-events .tribe-events-calendar-month__calendar-event .tribe-events-calendar-month__calendar-event-title-link:visited {
+	color: var(--tec-color-category-text);
+	font-weight: inherit;
+	border-bottom: 0;
+}
+
+/*
+ * Couleur de texte de la catégorie, aussi sur les barres multi-jours.
+ * TEC l'applique aux événements horaires mais pas aux barres : sans cette
+ * règle, deux badges de la même catégorie auraient deux couleurs de texte.
+ * `--tec-color-category-text` vaut `--tec-color-text-primary` par défaut sur
+ * `:root` — la couleur actuelle des barres —, donc rien ne change tant
+ * qu'aucune couleur de texte n'est choisie.
+ */
+.tribe-common--breakpoint-medium.tribe-events.tribe-events .tribe-events-calendar-month__multiday-event-bar-title {
+	color: var(--tec-color-category-text);
 }
 
 /*

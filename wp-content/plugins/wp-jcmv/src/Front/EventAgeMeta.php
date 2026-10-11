@@ -7,7 +7,7 @@
  * une compétition importée porte bien « Cadet » en base sans que rien ne le
  * montre au visiteur. C'est pourtant ce qui lui dit si la date le concerne.
  *
- * Deux emplacements, deux hooks, aucun gabarit copié :
+ * Trois emplacements, trois hooks, aucun gabarit copié :
  *
  * - la fiche d'un événement, en ligne du bloc « Détails ». Le hook de fin de
  *   liste existe dans les deux gabarits de fiche, le classique
@@ -15,7 +15,10 @@
  *   (`blocks/parts/details.php`) : une seule greffe couvre les deux ;
  * - la vue Liste, en badges sous le titre. Les vues V2 déclenchent une action
  *   après chaque partie de gabarit incluse, et le contexte local — donc
- *   l'événement — est encore en place à ce moment-là.
+ *   l'événement — est encore en place à ce moment-là ;
+ * - l'infobulle de la vue Mois, en badges sous le titre, par le même
+ *   mécanisme. Le gabarit d'infobulle est partagé par les événements
+ *   horaires et les barres sur la journée : une greffe couvre les deux.
  *
  * Surcharger `views/v2/list/event/title.php` dans le thème marcherait aussi,
  * mais figerait le balisage de TEC : à chaque mise à jour du plugin, la copie
@@ -49,9 +52,13 @@ final class EventAgeMeta {
 	/** Après le titre d'une ligne de la vue Liste (vues V2). */
 	private const HOOK_LIST = 'tribe_template_after_include:events/v2/list/event/title';
 
+	/** Après le titre de l'infobulle de la vue Mois (vues V2). */
+	private const HOOK_TOOLTIP = 'tribe_template_after_include:events/v2/month/calendar-body/day/calendar-events/calendar-event/tooltip/title';
+
 	public static function register(): void {
 		add_action( self::HOOK_SINGLE, array( self::class, 'render_details_row' ) );
 		add_action( self::HOOK_LIST, array( self::class, 'render_list_badges' ), 10, 3 );
+		add_action( self::HOOK_TOOLTIP, array( self::class, 'render_tooltip_badges' ), 10, 3 );
 	}
 
 	/**
@@ -100,6 +107,31 @@ final class EventAgeMeta {
 	 * @param object       $template Instance du moteur de gabarits de TEC.
 	 */
 	public static function render_list_badges( $file, $name, $template ): void {
+		self::render_template_badges( $template, 'jcmv-event-ages--list' );
+	}
+
+	/**
+	 * Affiche les badges sous le titre, dans l'infobulle de la vue Mois.
+	 *
+	 * Même contrat que render_list_badges(). L'infobulle est un gabarit masqué
+	 * dans la case du jour, que le script de TEC clone à l'ouverture : les
+	 * badges imprimés ici voyagent avec lui.
+	 *
+	 * @param string       $file     Gabarit inclus (inutilisé).
+	 * @param array<mixed> $name     Nom du gabarit (inutilisé).
+	 * @param object       $template Instance du moteur de gabarits de TEC.
+	 */
+	public static function render_tooltip_badges( $file, $name, $template ): void {
+		self::render_template_badges( $template, 'jcmv-event-ages--tooltip' );
+	}
+
+	/**
+	 * Badges de l'événement courant d'un gabarit des vues V2.
+	 *
+	 * @param mixed  $template Instance du moteur de gabarits de TEC.
+	 * @param string $modifier Classe de contexte.
+	 */
+	private static function render_template_badges( $template, string $modifier ): void {
 		if ( ! is_object( $template ) || ! method_exists( $template, 'get' ) ) {
 			return;
 		}
@@ -116,7 +148,7 @@ final class EventAgeMeta {
 			return;
 		}
 
-		echo self::badges( $names, 'jcmv-event-ages--list' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo self::badges( $names, $modifier ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
 
 	/**

@@ -45,6 +45,13 @@ final class Taxonomies {
 	/** Term meta portant les tailles d'un système, dans l'ordre d'affichage. */
 	public const META_TAILLES = 'jcmv_tailles';
 
+	/**
+	 * Term meta portant la couleur d'une catégorie d'âge (`#rrggbb`), utilisée
+	 * pour le liseré des compétitions dans le calendrier (Front\EventAgeColors).
+	 * Facultative : absente, le liseré garde la couleur de la catégorie TEC.
+	 */
+	public const META_COULEUR = 'jcmv_couleur';
+
 	/** CPT de The Events Calendar. */
 	private const TEC_CPT = 'tribe_events';
 
@@ -203,6 +210,21 @@ final class Taxonomies {
 				)
 			);
 		}
+
+		// Couleur facultative de la catégorie d'âge. sanitize_hex_color()
+		// renvoie null pour toute valeur qui n'est pas un `#rgb` / `#rrggbb` :
+		// rien d'autre ne peut atteindre la feuille de style générée.
+		register_term_meta(
+			self::CATEGORIE_AGE,
+			self::META_COULEUR,
+			array(
+				'type'              => 'string',
+				'single'            => true,
+				'default'           => '',
+				'show_in_rest'      => true,
+				'sanitize_callback' => static fn ( $value ): string => (string) sanitize_hex_color( (string) $value ),
+			)
+		);
 
 		// The Events Calendar : liaison des événements aux catégories d'âge.
 		if ( post_type_exists( self::TEC_CPT ) ) {

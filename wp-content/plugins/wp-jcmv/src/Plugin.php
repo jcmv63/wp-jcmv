@@ -44,6 +44,7 @@ final class Plugin {
 		Front\IcalAllDay::register();
 		Front\EventsWidget::register();
 		Front\EventAgeMeta::register();
+		Front\EventAgeColors::register();
 		Front\EventLinks::register();
 		Front\EventHeader::register();
 
